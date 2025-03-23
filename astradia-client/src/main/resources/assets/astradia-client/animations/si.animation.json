@@ -1,0 +1,16 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"idle": {
+			"loop": true,
+			"bones": {
+				"bipedHead": {
+					"position": {
+						"vector": [0, "math.cos(query.anim_time * 200) * 5", 0]
+					}
+				}
+			}
+		}
+	},
+	"geckolib_format_version": 2
+}

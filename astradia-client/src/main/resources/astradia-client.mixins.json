@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "com.astradia.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PlayerEntityRenderStateMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "PlayerEntityRendererMixin"
+  ]
+}

@@ -1,0 +1,15 @@
+pluginManagement {
+	repositories {
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
+		mavenCentral()
+		gradlePluginPortal()
+	}
+}
+rootProject.name = 'astradia-project'
+
+include 'astradia-common'
+include 'astradia-client'
+include 'astradia-server'

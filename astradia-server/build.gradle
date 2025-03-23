@@ -1,0 +1,28 @@
+import java.text.SimpleDateFormat
+
+version = project.server_version
+group = project.maven_group
+
+dependencies {
+	implementation(project(path: ":astradia-common", configuration: "namedElements"))
+	include(implementation('org.mongodb:mongodb-driver-sync:4.11.1'))
+}
+
+loom {
+	runConfigs.configureEach {
+		ideConfigGenerated(true)
+	}
+}
+
+processResources {
+	def properties = [
+			"version"   : project.version,
+			"buildDate" : new SimpleDateFormat("yyyyMMdd").format(new Date())
+	]
+
+	inputs.properties(properties)
+
+	filesMatching("fabric.mod.json") {
+		expand(properties)
+	}
+}
