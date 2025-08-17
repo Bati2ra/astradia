@@ -26,6 +26,8 @@ public class CosmeticLayer extends FeatureRenderer<PlayerEntityRenderState, Play
 
     @Override
     public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, PlayerEntityRenderState state, float limbAngle, float limbDistance) {
+        if(!AstradiaClient.isEverythingReady()) return;
+
         UUID uuid = ((AstradiaPlayerEntityRenderState) state).getUuid();
         float partialTick = ((AstradiaPlayerEntityRenderState) state).getPartialTick();
         var cosmetics = AstradiaClient.getPlayerManager().getFromUuid(uuid).getCosmetics();

@@ -7,9 +7,9 @@ import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -23,27 +23,20 @@ public class PlayerManager {
     public void initialize() {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> onPlayerDisconnect(handler.getPlayer()));
         ServerPlayConnectionEvents.JOIN.register(((serverPlayNetworkHandler, packetSender, minecraftServer) -> onPlayerConnect(serverPlayNetworkHandler.getPlayer())));
+        AstradiaServer.LOGGER.info("[PlayerManager] Inicializado y escuchando eventos de conexión/desconexión.");
     }
 
-    private void onPlayerDisconnect(ServerPlayerEntity player) {
-        //var store = AstradiaServer.getPlayerCosmeticStore();
-        //assert store != null;
-        //store.save(player.getUuid(), getFrom(player.getUuid()));
-        players.remove(player.getUuid());
-    }
-
-    private void onPlayerConnect(ServerPlayerEntity player) {
-        //var store = AstradiaServer.getPlayerCosmeticStore();
-        //assert store != null;
-        //var optional = store.findById(player.getUuid());
-        //optional.ifPresent(data -> cosmetics.put(player.getUuid(), data));
-        sendToSelf(player);
-    }
-
+    /**
+     * Obtiene PlayerData desde una entidad de jugador.
+     */
     public PlayerData getFromPlayer(PlayerEntity player) {
         return getFromUuid(player.getUuid());
     }
 
+    /**
+     * Obtiene PlayerData desde un UUID.
+     * Si el jugador aún no existe en el mapa, se instancia.
+     */
     public PlayerData getFromUuid(UUID uuid) {
         if(!players.containsKey(uuid)) {
             instantiatePlayer(uuid);
@@ -51,42 +44,93 @@ public class PlayerManager {
         return players.get(uuid);
     }
 
+    /**
+     * Crea y almacena un PlayerData vacío para un UUID específico.
+     */
     public void instantiatePlayer(UUID player) {
         PlayerData playerData = new PlayerData(player);
         players.put(player, playerData);
+        AstradiaServer.LOGGER.debug("[PlayerManager] PlayerData creado en memoria para UUID {}.", player);
     }
 
-    public void sendToPlayer(ServerPlayerEntity player, ServerPlayerEntity to) {
+    /**
+     * Evento: cuando un jugador se desconecta.
+     * Aquí es buen lugar para guardar datos en la base de datos y limpiar memoria.
+     */
+    private void onPlayerDisconnect(ServerPlayerEntity player) {
+        UUID uuid = player.getUuid();
+        AstradiaServer.LOGGER.info("[PlayerManager] Jugador {} (UUID {}) se desconectó. Guardando y removiendo datos...", player.getName().getString(), uuid);
+        // TODO: guardar PlayerData en la base de datos de manera asíncrona.
+    }
+
+    /**
+     * Evento: cuando un jugador se conecta al servidor.
+     * Aquí se inicia la carga de datos desde la base de datos.
+     */
+    private void onPlayerConnect(ServerPlayerEntity player) {
+        UUID uuid = player.getUuid();
+        AstradiaServer.LOGGER.info("[PlayerManager] Jugador {} (UUID {}) se conectó. Iniciando carga de datos...", player.getName().getString(), uuid);
+
+        // cargar datos de BD
         PlayerData playerData = getFromPlayer(player);
-        PlayerState status = playerData.getStatus();
-        if(!status.equals(PlayerState.READY)) {
-            AstradiaServer.LOGGER.info("[PlayerData] El jugador {} no está listo para recibir información.", player.getDisplayName().getString());
+        playerData.setLoading(false);
+
+        AstradiaServer.LOGGER.info("[PlayerData] Datos de {} cargados correctamente. Enviando información inicial a sí mismo y jugadores cercanos.", player.getName().getString());
+
+        sendToTrackingPlayersAndSelf(player);
+    }
+
+    /**
+     * Evento: cuando un jugador comienza a trackear a otro.
+     */
+    public void onPlayerTracking(ServerPlayerEntity player, ServerPlayerEntity trackedPlayer) {
+        PlayerData trackedData = AstradiaServer.getPlayerManager().getFromPlayer(trackedPlayer);
+
+        if (trackedData.isLoading()) {
+            AstradiaServer.LOGGER.warn("[PlayerData] {} intentó trackear a {}, pero sus datos aún están cargando. Se ignorará.",
+                    player.getName().getString(), trackedPlayer.getName().getString());
             return;
         }
-        NbtCompound tag = playerData.toNbt();
-        NetworkManager.sendToPlayer(to, new PlayerDataPayload(tag));
-        AstradiaServer.LOGGER.info("[PlayerData] Enviando información de {} a {}.", player.getDisplayName().getString(), to.getDisplayName().getString());
+
+        sendToPlayer(trackedPlayer, player);
     }
 
+    /**
+     * Envía los datos de un jugador a otro jugador específico.
+     */
+    public void sendToPlayer(ServerPlayerEntity source, ServerPlayerEntity target) {
+        PlayerData playerData = getFromPlayer(source);
+        NetworkManager.sendToPlayer(target, new PlayerDataPayload(playerData.toNbt()));
+
+        AstradiaServer.LOGGER.debug("[PlayerData] Enviando datos de {} -> {}.", source.getName().getString(), target.getName().getString());
+    }
+
+    /**
+     * Envía los datos de un jugador a sí mismo (útil al conectarse).
+     */
     public void sendToSelf(ServerPlayerEntity player) {
         sendToPlayer(player, player);
     }
 
+    /**
+     * Envía los datos de un jugador a todos los que lo están trackeando.
+     * Si withSelf es true, también se los envía al propio jugador.
+     */
     private void sendToTrackingPlayers(ServerPlayerEntity player, boolean withSelf) {
         PlayerData playerData = getFromPlayer(player);
-        PlayerState status = playerData.getStatus();
-        if(!status.equals(PlayerState.READY)) {
-            AstradiaServer.LOGGER.info("[PlayerData] El jugador {} no está listo para recibir información.", player.getDisplayName().getString());
-            return;
-        }
+
         PlayerDataPayload payload = new PlayerDataPayload(playerData.toNbt());
         if(withSelf) ServerPlayNetworking.send(player, payload);
-        for (ServerPlayerEntity serverPlayerEntity : PlayerLookup.tracking(player)) {
-            if(!AstradiaServer.getPlayerManager().getFromPlayer(serverPlayerEntity).getStatus().equals(PlayerState.READY)) continue;
+        Collection<ServerPlayerEntity> trackingPlayers = PlayerLookup.tracking(player);
+        for (ServerPlayerEntity serverPlayerEntity : trackingPlayers) {
             ServerPlayNetworking.send(serverPlayerEntity, payload);
-            System.out.print(serverPlayerEntity.getDisplayName().getString() + ", ");
+            AstradiaServer.LOGGER.debug("[PlayerData] Enviando datos de {} -> {}.", player.getName().getString(), serverPlayerEntity.getName().getString());
         }
-        AstradiaServer.LOGGER.info("[Cosmetics] Enviando información de {} a todos los jugadores en rango.", player.getDisplayName().getString());
+        AstradiaServer.LOGGER.info("[PlayerData] Datos de {} enviados a {} jugadores en rango ({} incluido: {}).",
+                player.getName().getString(),
+                trackingPlayers.size(),
+                player.getName().getString(),
+                withSelf);
     }
 
     public void sendToTrackingPlayersAndSelf(ServerPlayerEntity player) {

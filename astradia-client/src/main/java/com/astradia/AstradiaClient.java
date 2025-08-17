@@ -27,6 +27,7 @@ public class AstradiaClient implements ModInitializer {
 			}
 		});
 		//ClientPlayerManager.INSTANCE.initialize();
+		ClientCosmeticStore.INSTANCE.initialize();
 		playerManager = new PlayerManager();
 		playerManager.initialize();
 		ClientNetworkManager.initialize();
@@ -35,5 +36,9 @@ public class AstradiaClient implements ModInitializer {
 
 	public static PlayerManager getPlayerManager() {
 		return playerManager;
+	}
+
+	public static boolean isEverythingReady() {
+		return ClientCosmeticStore.INSTANCE.isReady();
 	}
 }

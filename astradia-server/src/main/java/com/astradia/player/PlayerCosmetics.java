@@ -37,6 +37,13 @@ public class PlayerCosmetics extends PlayerFeature {
         return CosmeticResponse.of(ResponseType.SUCCESS);
     }
 
+    public CosmeticResponse clearSlots() {
+        for (EquipmentSlot slot : equippedInventory) {
+            slot.unequip();
+        }
+        return CosmeticResponse.of(ResponseType.SUCCESS);
+    }
+
     public boolean isUnlocked(Integer id) {
         return unlockedCosmetics.contains(id);
     }

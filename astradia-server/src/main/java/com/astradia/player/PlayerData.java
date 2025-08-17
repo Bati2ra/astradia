@@ -9,6 +9,7 @@ import java.util.UUID;
 public class PlayerData implements IPlayerData {
     private final UUID playerId;
     private PlayerState status;
+    private boolean loading;
     private final PlayerCosmetics cosmetics;
     protected final Map<Class<? extends PlayerFeature>, PlayerFeature> features;
 
@@ -16,6 +17,7 @@ public class PlayerData implements IPlayerData {
         this.playerId = playerId;
         this.features = new HashMap<>();
         this.status = PlayerState.CONNECTING;
+        this.loading = true;
         cosmetics = new PlayerCosmetics(playerId);
         features.put(PlayerCosmetics.class, cosmetics);
     }
@@ -39,6 +41,14 @@ public class PlayerData implements IPlayerData {
 
     public void setStatus(PlayerState status) {
         this.status = status;
+    }
+
+    public boolean isLoading() {
+        return loading;
+    }
+
+    public void setLoading(boolean loading) {
+        this.loading = loading;
     }
 
     @Override

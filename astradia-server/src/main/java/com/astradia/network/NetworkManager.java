@@ -22,13 +22,6 @@ public class NetworkManager {
         PayloadTypeRegistry.playC2S().register(PlayerReadyPayload.ID, PlayerReadyPayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(PlayerReadyPayload.ID, (payload, ctx) -> {
-           ServerPlayerEntity player = ctx.player();
-           PlayerManager playerManager = AstradiaServer.getPlayerManager();
-           PlayerData playerData = playerManager.getFromPlayer(player);
-           playerData.setStatus(PlayerState.READY);
-           // TODO, en esta instancia debería enviarse también la información de los jugadores que lo están mirando!
-           playerManager.sendToSelf(player);
-           AstradiaServer.LOGGER.info("[PlayerData] El jugador {} está listo para recibir información.", player.getDisplayName().getString());
         });
     }
     public static void sendToPlayer(ServerPlayerEntity to, CustomPayload payload) {
