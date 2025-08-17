@@ -1,8 +1,7 @@
 package com.astradia.render.layer;
 
-import com.astradia.ClientPlayerCosmeticManager;
-import com.astradia.player.ClientEquipmentSlot;
-import com.astradia.pojo.ClientCosmetic;
+import com.astradia.AstradiaClient;
+import com.astradia.player.EquipmentSlot;
 import com.astradia.utils.AstradiaPlayerEntityRenderState;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
@@ -29,29 +28,23 @@ public class CosmeticLayer extends FeatureRenderer<PlayerEntityRenderState, Play
     public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, PlayerEntityRenderState state, float limbAngle, float limbDistance) {
         UUID uuid = ((AstradiaPlayerEntityRenderState) state).getUuid();
         float partialTick = ((AstradiaPlayerEntityRenderState) state).getPartialTick();
-        var equipment = ClientPlayerCosmeticManager.INSTANCE.getFrom(uuid).getEquipment();
+        var cosmetics = AstradiaClient.getPlayerManager().getFromUuid(uuid).getCosmetics();
+        var equipment = cosmetics.getEquippedInventory();
+        for (EquipmentSlot slot : equipment) {
+            if(slot.getCosmetic() == null) continue;
+            renderCosmetic(slot, matrices, vertexConsumers, light, state, limbAngle, limbDistance, partialTick);
 
-        var iterator = equipment.entrySet().stream().iterator();
-        while(iterator.hasNext()) {
-            var entry = iterator.next();
-            var value = entry.getValue();
-            for (ClientEquipmentSlot clientEquipmentSlot : value) {
-                var cosmetic = clientEquipmentSlot.getCachedCosmetic();
-                if(cosmetic.getCached() == null) continue;
-
-                renderCosmetic(clientEquipmentSlot, cosmetic.getCached(), matrices, vertexConsumers, light, state, limbAngle, limbDistance, partialTick);
-            }
         }
     }
 
-    private void renderCosmetic(ClientEquipmentSlot slot, ClientCosmetic cosmetic, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, PlayerEntityRenderState state, float limbAngle, float limbDistance, float partialTick) {
-        var renderer = cosmetic.getRenderer();
+    private void renderCosmetic(EquipmentSlot slot, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, PlayerEntityRenderState state, float limbAngle, float limbDistance, float partialTick) {
+        var renderer = slot.getCosmetic().getRenderer();
         var model = renderer.getGeoModel().getBakedModel(renderer.getGeoModel().getModelResource(renderer.getAnimatable(), renderer));
         int color = Colors.WHITE;
-        if(cosmetic.isColorable()) {
+        if(slot.getCosmetic().isColorable()) {
             color = slot.getStoredData().getInt("color");
             if(color == 0) color = -1;
         }
-        renderer.actuallyRenderCosmetic(this.renderer, matrices, renderer.getAnimatable(), model, RenderLayer.getEntityTranslucent(cosmetic.getTexturePath()), vertexConsumers, vertexConsumers.getBuffer(RenderLayer.getEntityTranslucent(cosmetic.getTexturePath())), false, partialTick, light, OverlayTexture.DEFAULT_UV, color);
+        renderer.actuallyRenderCosmetic(this.renderer, matrices, renderer.getAnimatable(), model, RenderLayer.getEntityTranslucent(slot.getCosmetic().getTexturePath()), vertexConsumers, vertexConsumers.getBuffer(RenderLayer.getEntityTranslucent(slot.getCosmetic().getTexturePath())), false, partialTick, light, OverlayTexture.DEFAULT_UV, color);
     }
 }

@@ -56,7 +56,7 @@ public class ServerCosmeticStore extends CosmeticStore<Cosmetic> {
         AstradiaServer.LOGGER.info("[Cosmetics] Enviando información de cosméticos a {}.", player.getDisplayName().getString());
     }
 
-    private NbtCompound toNbt() {
+    public NbtCompound toNbt() {
         NbtCompound tag = new NbtCompound();
         NbtList list = new NbtList();
         var iterator = cosmetics.entrySet().stream().iterator();

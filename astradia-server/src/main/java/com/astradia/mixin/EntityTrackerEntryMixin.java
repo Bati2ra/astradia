@@ -1,6 +1,6 @@
 package com.astradia.mixin;
 
-import com.astradia.ServerPlayerCosmeticManager;
+import com.astradia.AstradiaServer;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.EntityTrackerEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -20,7 +20,7 @@ public abstract class EntityTrackerEntryMixin {
 	@Inject(method = "startTracking", at = @At("RETURN"))
 	private void onStartedTracking(ServerPlayerEntity player, CallbackInfo ci) {
 		if(entity instanceof ServerPlayerEntity trackedPlayer) {
-			ServerPlayerCosmeticManager.INSTANCE.sendToPlayer(player, trackedPlayer);
+			AstradiaServer.getPlayerManager().sendToPlayer(player, trackedPlayer);
 		}
 	}
 }

@@ -1,10 +1,11 @@
 package com.astradia.network;
 
 
+import com.astradia.AstradiaClient;
 import com.astradia.ClientCosmeticStore;
-import com.astradia.ClientPlayerCosmeticManager;
 import com.astradia.network.payloads.CosmeticsDataPayload;
-import com.astradia.network.payloads.PlayerCosmeticsDataPayload;
+import com.astradia.network.payloads.PlayerDataPayload;
+import com.astradia.network.payloads.PlayerReadyPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.nbt.NbtCompound;
@@ -14,15 +15,17 @@ import net.minecraft.nbt.NbtList;
 public class ClientNetworkManager {
 
     public static void initialize() {
-        PayloadTypeRegistry.playS2C().register(PlayerCosmeticsDataPayload.ID, PlayerCosmeticsDataPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(CosmeticsDataPayload.ID, CosmeticsDataPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(PlayerDataPayload.ID, PlayerDataPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(PlayerReadyPayload.ID, PlayerReadyPayload.CODEC);
 
-        ClientPlayNetworking.registerGlobalReceiver(PlayerCosmeticsDataPayload.ID, (payload, context) -> {
+
+        ClientPlayNetworking.registerGlobalReceiver(PlayerDataPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
                 NbtCompound data = payload.nbtCompound();
                 System.out.println("Received data:");
-                ClientPlayerCosmeticManager.INSTANCE.receiveServerPlayerData(data);
-                System.out.println("UUID: " + data.getUuid("uuid"));
+                System.out.println("Data: " + data.asString());
+                AstradiaClient.getPlayerManager().receiveServerPlayerData(data);
                 NbtCompound cosmeticsData = data.getCompound("cosmetics");
                 for (String key : cosmeticsData.getKeys()) {
                     System.out.println(key + " " + cosmeticsData.get(key).toString());
@@ -30,6 +33,7 @@ public class ClientNetworkManager {
             });
         });
 
+        // Convertir en un handshake, si el cliente recibio cierta informacion, esta listo para recibir otra relacionada
         ClientPlayNetworking.registerGlobalReceiver(CosmeticsDataPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
                 NbtCompound data = payload.nbtCompound();
@@ -41,6 +45,8 @@ public class ClientNetworkManager {
                         System.out.println(nbtCompound);
                     }
                 }
+                // Indicar al servidor que el cliente esta listo para recibir mensajes
+                ClientPlayNetworking.send(new PlayerReadyPayload());
             });
         });
     }

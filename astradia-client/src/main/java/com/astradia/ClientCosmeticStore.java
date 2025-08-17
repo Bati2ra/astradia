@@ -7,7 +7,7 @@ import net.minecraft.nbt.NbtList;
 
 public class ClientCosmeticStore extends CosmeticStore<ClientCosmetic> {
     public static final ClientCosmeticStore INSTANCE = new ClientCosmeticStore();
-
+    private boolean isReady;
     public void receiveServerStore(NbtCompound tag) {
         cosmetics.clear();
         NbtList list = (NbtList) tag.get("cosmetics");
@@ -17,5 +17,15 @@ public class ClientCosmeticStore extends CosmeticStore<ClientCosmetic> {
             ClientCosmetic cosmetic = new ClientCosmetic(element);
             cosmetics.put(cosmetic.getId(), cosmetic);
         }
+        isReady = true;
+    }
+
+    public boolean isReady() {
+        return isReady;
+    }
+
+    public void onLeave() {
+        cosmetics.clear();
+        isReady = false;
     }
 }

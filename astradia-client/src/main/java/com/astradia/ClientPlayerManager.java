@@ -1,14 +1,13 @@
 package com.astradia;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientLoginConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.nbt.NbtCompound;
 
 import java.util.UUID;
-
-public class ClientPlayerCosmeticManager extends PlayerCosmeticManager<ClientPlayerCosmetics> {
-    public static final ClientPlayerCosmeticManager INSTANCE = new ClientPlayerCosmeticManager();
+/*
+public class ClientPlayerManager {
+    public static final ClientPlayerManager INSTANCE = new ClientPlayerManager();
 
     @Override
     public void initialize() {
@@ -45,3 +44,4 @@ public class ClientPlayerCosmeticManager extends PlayerCosmeticManager<ClientPla
         AstradiaClient.LOGGER.info("[Cosmetics] Limpiando caché de jugadores");
     }
 }
+*/

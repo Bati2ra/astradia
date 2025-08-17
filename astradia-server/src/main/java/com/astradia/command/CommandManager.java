@@ -1,10 +1,11 @@
 package com.astradia.command;
 
+import com.astradia.AstradiaServer;
 import com.astradia.ServerCosmeticStore;
-import com.astradia.ServerPlayerCosmeticManager;
 import com.astradia.enums.BodyPart;
 import com.astradia.enums.ResponseType;
 import com.astradia.enums.SlotType;
+import com.astradia.player.PlayerData;
 import com.astradia.pojo.Cosmetic;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -21,7 +22,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.text.Texts;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -33,7 +33,7 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class CommandManager {
-    private static final SuggestionProvider<ServerCommandSource> BODY_PART_SUGGESTIONS = (context, builder) -> suggest(builder, Arrays.stream(BodyPart.values()).map(Enum::name).collect(Collectors.toSet()));
+   private static final SuggestionProvider<ServerCommandSource> BODY_PART_SUGGESTIONS = (context, builder) -> suggest(builder, Arrays.stream(BodyPart.values()).map(Enum::name).collect(Collectors.toSet()));
     private static final SuggestionProvider<ServerCommandSource> COSMETIC_SUGGESTIONS = (context, builder) -> suggestWithTooltip(builder, null, -1);
     private static final SuggestionProvider<ServerCommandSource> SLOT_TYPE_SUGGESTIONS = (context, builder) -> suggestSlots(builder, StringArgumentType.getString(context, "bodyPart"));
 
@@ -41,7 +41,7 @@ public class CommandManager {
             .then(argument("player", EntityArgumentType.player())
                     .executes(context -> {
                         final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                        var result = ServerPlayerCosmeticManager.INSTANCE.getFrom(player).unlockAll();
+                        var result = AstradiaServer.getPlayerManager().getFromPlayer(player).getCosmetics().unlockAll();
                         context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);
                         return 1;
                     })
@@ -51,7 +51,7 @@ public class CommandManager {
                                 final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                                 final Integer value = IntegerArgumentType.getInteger(context, "id");
                                 try {
-                                    var result = ServerPlayerCosmeticManager.INSTANCE.getFrom(player).unlock(value);
+                                    var result = AstradiaServer.getPlayerManager().getFromPlayer(player).getCosmetics().unlock(value);
                                     context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);
                                 } catch(Exception exception) {
                                     exception.printStackTrace();
@@ -62,47 +62,27 @@ public class CommandManager {
             );
     public static final LiteralArgumentBuilder<ServerCommandSource> EQUIP_COMMAND = literal("equip")
             .then(argument("player", EntityArgumentType.player())
-                    .then(argument("bodyPart", StringArgumentType.string())
-                        .suggests(BODY_PART_SUGGESTIONS)
                         .then(argument("slot", IntegerArgumentType.integer())
-                                .suggests(SLOT_TYPE_SUGGESTIONS)
                                 .then(argument("id", IntegerArgumentType.integer())
-                                        .suggests((context, builder) -> suggestWithTooltip(builder, StringArgumentType.getString(context, "bodyPart"), IntegerArgumentType.getInteger(context, "slot")))
-                                        .executes(context -> equipCosmetic(context, false))
+                                       .executes(context -> equipCosmetic(context, false))
                                         .then(argument("nbt", NbtCompoundArgumentType.nbtCompound())
                                                 .executes(context -> equipCosmetic(context, true))
                                         )
                                 )
                         )
-                    )
+
             );
     public static final LiteralArgumentBuilder<ServerCommandSource> UNEQUIP_COMMAND = literal("unequip")
             .then(argument("player", EntityArgumentType.player())
-                    .then(argument("bodyPart", StringArgumentType.string())
-                            .suggests(BODY_PART_SUGGESTIONS)
                             .then(argument("slot", IntegerArgumentType.integer())
-                                    .suggests(SLOT_TYPE_SUGGESTIONS)
                                     .executes(context -> {
                                         final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                                        final BodyPart part;
                                         final int slot = IntegerArgumentType.getInteger(context, "slot");
-                                        try {
-                                            part = BodyPart.valueOf(StringArgumentType.getString(context, "bodyPart"));
-                                            var result = ServerPlayerCosmeticManager.INSTANCE.getFrom(player).unequipItem(
-                                                    part,
-                                                    slot
-                                            );
-                                            if(result.getCode().equals(ResponseType.SUCCESS)) {
-                                                ServerPlayerCosmeticManager.INSTANCE.sendToTrackingPlayersAndSelf(player);
-                                            }
-                                            context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);
-                                        } catch (Exception exception) {
-                                            context.getSource().sendFeedback(() -> Text.literal("La parte del cuerpo o slot especificado es inválido."), false);
-                                        }
+                                        AstradiaServer.getPlayerManager().getFromPlayer(player).getCosmetics().unequipCosmetic(slot);
+
                                         return 1;
                                     })
                             )
-                    )
             );
     public static final LiteralArgumentBuilder<ServerCommandSource> SHOW_COMMAND = literal("show")
             .then(argument("player", EntityArgumentType.player())
@@ -110,7 +90,7 @@ public class CommandManager {
                             .executes(context -> {
                                 final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                                 final String option = StringArgumentType.getString(context, "option");
-                                var cosmetics = ServerPlayerCosmeticManager.INSTANCE.getFrom(player);
+                                var cosmetics = AstradiaServer.getPlayerManager().getFromPlayer(player).getCosmetics();
                                 if(option.contentEquals("equipment")) {
                                     context.getSource().sendFeedback(() -> Text.literal(cosmetics.showEquipment()), false);
                                 }
@@ -118,11 +98,22 @@ public class CommandManager {
                                     context.getSource().sendFeedback(() -> Text.literal(cosmetics.showUnlockedCosmetics()), false);
                                 }
                                 if(option.contentEquals("network")) {
-                                    context.getSource().sendFeedback(() -> Text.literal(cosmetics.toNbt().asString()), false);
+                                    context.getSource().sendFeedback(() -> Text.literal(AstradiaServer.getPlayerManager().getFromPlayer(player).toNbt().asString()), false);
                                 }
                                 return 1;
                             })
                     )
+            );
+
+    public static final LiteralArgumentBuilder<ServerCommandSource> SHOW_COSMETICS = literal("showc")
+
+
+                            .executes(context -> {
+                                var store = ServerCosmeticStore.INSTANCE.toNbt();
+                                context.getSource().sendFeedback(() -> Text.literal(store.asString()), false);
+                                return 1;
+                            }
+
             );
 
     public static void initialize() {
@@ -133,6 +124,7 @@ public class CommandManager {
                     .then(EQUIP_COMMAND)
                     .then(UNEQUIP_COMMAND)
                     .then(SHOW_COMMAND)
+                    .then(SHOW_COSMETICS)
             );
         });
 
@@ -140,31 +132,32 @@ public class CommandManager {
 
     private static int equipCosmetic(CommandContext<ServerCommandSource> context, boolean hasNbt) throws CommandSyntaxException {
         final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        BodyPart part;
+
         int slot = IntegerArgumentType.getInteger(context, "slot");
         final Integer value = IntegerArgumentType.getInteger(context, "id");
         final NbtCompound nbt = hasNbt ?  NbtCompoundArgumentType.getNbtCompound(context, "nbt") : null;
-        try {
-            part = BodyPart.valueOf(StringArgumentType.getString(context, "bodyPart"));
-        } catch(Exception ignored) {
-            context.getSource().sendFeedback(() -> Text.literal("Parte del cuerpo o slot no válido."), false);
-            return 0;
-        }
+
         var cosmetic = ServerCosmeticStore.INSTANCE.get(value);
         if(cosmetic == null) {
             context.getSource().sendFeedback(() -> Text.literal("El id especificado no pertenece a ningún cosmético"), false);
             return 0;
         }
-        var result = ServerPlayerCosmeticManager.INSTANCE.getFrom(player).equipItem(
+        PlayerData playerData = AstradiaServer.getPlayerManager().getFromPlayer(player);
+        var result = playerData.getCosmetics().equipCosmetic(slot, cosmetic, nbt);
+        if(playerData.getCosmetics().isDirty()) {
+            AstradiaServer.getPlayerManager().sendToTrackingPlayersAndSelf(player);
+        }
+        context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);
+        /*var result = ServerPlayerManager.INSTANCE.getFrom(player).equipItem(
                 cosmetic,
                 part,
                 slot,
                 nbt
         );
         if(result.getCode().equals(ResponseType.SUCCESS)) {
-            ServerPlayerCosmeticManager.INSTANCE.sendToTrackingPlayersAndSelf(player);
+            ServerPlayerManager.INSTANCE.sendToTrackingPlayersAndSelf(player);
         }
-        context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);
+        context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);*/
         return 1;
     }
 

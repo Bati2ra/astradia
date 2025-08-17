@@ -1,8 +1,8 @@
 package com.astradia;
 
 import com.astradia.network.ClientNetworkManager;
+import com.astradia.player.PlayerManager;
 import com.astradia.render.layer.CosmeticLayer;
-import com.astradia.screen.DebugOverlay;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
@@ -15,17 +15,25 @@ public class AstradiaClient implements ModInitializer {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+	private static PlayerManager playerManager;
 	@Override
 	public void onInitialize() {
 		LOGGER.info("Hello Fabric world from client!");
-		DebugOverlay.initialize();
+		//DebugOverlay.initialize();
 
 		LivingEntityFeatureRendererRegistrationCallback.EVENT.register((entityType, entityRenderer, registrationHelper, context) -> {
 			if(entityRenderer instanceof PlayerEntityRenderer renderer) {
 				registrationHelper.register(new CosmeticLayer(renderer));
 			}
 		});
-		ClientPlayerCosmeticManager.INSTANCE.initialize();
+		//ClientPlayerManager.INSTANCE.initialize();
+		playerManager = new PlayerManager();
+		playerManager.initialize();
 		ClientNetworkManager.initialize();
+
+	}
+
+	public static PlayerManager getPlayerManager() {
+		return playerManager;
 	}
 }

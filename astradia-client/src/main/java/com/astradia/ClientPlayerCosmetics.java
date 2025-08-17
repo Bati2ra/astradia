@@ -2,7 +2,6 @@ package com.astradia;
 
 import com.astradia.enums.BodyPart;
 import com.astradia.enums.SlotType;
-import com.astradia.player.ClientEquipmentSlot;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -10,8 +9,8 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 
 import java.util.UUID;
-
-public class ClientPlayerCosmetics extends PlayerCosmetics<ClientEquipmentSlot> {
+/*
+public class ClientPlayerCosmetics {
     private final PlayerEntity player;
 
     protected ClientPlayerCosmetics(UUID uuid) {
@@ -55,4 +54,4 @@ public class ClientPlayerCosmetics extends PlayerCosmetics<ClientEquipmentSlot> 
     public NbtCompound toNbt() {
         return null;
     }
-}
+}*/
