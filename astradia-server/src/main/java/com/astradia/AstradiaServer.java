@@ -8,7 +8,6 @@ import com.astradia.player.EquipmentSlot;
 import com.astradia.player.PlayerManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +24,7 @@ public class AstradiaServer implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STARTING.register((server) -> {
 			Database.connect();
 			//playerCosmeticStore = new PlayerCosmeticStore();
-			playerManager = new PlayerManager();
+			playerManager = new PlayerManager(server);
 			playerManager.initialize();
 		});
 		ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {

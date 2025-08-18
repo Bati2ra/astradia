@@ -4,10 +4,13 @@ import com.astradia.AstradiaServer;
 import com.astradia.ServerCosmeticStore;
 import com.astradia.enums.ResponseType;
 import com.astradia.pojo.Cosmetic;
+import com.astradia.pojo.PlayerCosmeticsPersistable;
 import com.astradia.utils.CosmeticResponse;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.StringNbtReader;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -111,5 +114,39 @@ public class PlayerCosmetics extends PlayerFeature {
     @Override
     public void deserialize(NbtCompound tag) {
 
+    }
+
+    public PlayerCosmeticsPersistable toPersistable() {
+        PlayerCosmeticsPersistable persistable = new PlayerCosmeticsPersistable();
+        persistable.unlockedCosmetics = new HashSet<>(unlockedCosmetics);
+        persistable.equippedInventory = new PlayerCosmeticsPersistable.EquipmentSlotPersistable[equippedInventory.length];
+        for (int i = 0; i < equippedInventory.length; i++) {
+            var slot = new PlayerCosmeticsPersistable.EquipmentSlotPersistable();
+            slot.slotId = i;
+            slot.cosmeticId = equippedInventory[i].getCosmetic() == null ? -1 : equippedInventory[i].getCosmetic().getId();
+            if(equippedInventory[i].storedData != null) {
+                slot.storedData = equippedInventory[i].storedData.asString();
+            }
+            persistable.equippedInventory[i] = slot;
+        }
+        return persistable;
+    }
+
+    public void fromPersistable(PlayerCosmeticsPersistable persistable) {
+        unlockedCosmetics.clear();
+        unlockedCosmetics.addAll(persistable.unlockedCosmetics);
+        for (int i = 0; i < persistable.equippedInventory.length; i++) {
+            var slot = persistable.equippedInventory[i];
+            if(slot.cosmeticId == -1) continue;
+            Cosmetic cosmetic = ServerCosmeticStore.INSTANCE.get(slot.cosmeticId);
+            equippedInventory[slot.slotId].equip(cosmetic);
+            if(slot.storedData != null) {
+                try {
+                    equippedInventory[slot.slotId].setStoredData(StringNbtReader.parse(slot.storedData));
+                } catch (CommandSyntaxException e) {
+                    equippedInventory[slot.slotId].setStoredData(null);
+                }
+            }
+        }
     }
 }

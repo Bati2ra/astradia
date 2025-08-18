@@ -3,10 +3,12 @@ package com.astradia.player;
 import com.astradia.AstradiaServer;
 import com.astradia.network.NetworkManager;
 import com.astradia.network.payloads.PlayerDataPayload;
+import com.astradia.store.PlayerDataStore;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.Collection;
@@ -15,9 +17,10 @@ import java.util.UUID;
 
 public class PlayerManager {
     protected final HashMap<UUID, PlayerData> players;
-
-    public PlayerManager() {
+    private final PlayerDataStore store;
+    public PlayerManager(MinecraftServer server) {
         players = new HashMap<>();
+        store = new PlayerDataStore(server);
     }
 
     public void initialize() {
@@ -61,6 +64,7 @@ public class PlayerManager {
         UUID uuid = player.getUuid();
         AstradiaServer.LOGGER.info("[PlayerManager] Jugador {} (UUID {}) se desconectó. Guardando y removiendo datos...", player.getName().getString(), uuid);
         // TODO: guardar PlayerData en la base de datos de manera asíncrona.
+        store.saveAll(uuid, getFromPlayer(player));
     }
 
     /**
@@ -72,8 +76,9 @@ public class PlayerManager {
         AstradiaServer.LOGGER.info("[PlayerManager] Jugador {} (UUID {}) se conectó. Iniciando carga de datos...", player.getName().getString(), uuid);
 
         // cargar datos de BD
-        PlayerData playerData = getFromPlayer(player);
+        PlayerData playerData = store.load(uuid);
         playerData.setLoading(false);
+        players.put(uuid, playerData);
 
         AstradiaServer.LOGGER.info("[PlayerData] Datos de {} cargados correctamente. Enviando información inicial a sí mismo y jugadores cercanos.", player.getName().getString());
 

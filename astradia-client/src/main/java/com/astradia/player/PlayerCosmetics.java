@@ -51,9 +51,7 @@ public class PlayerCosmetics extends PlayerFeature {
             if(!(nbtElement instanceof NbtCompound nbtCompound)) continue;
             int slotId = nbtCompound.getByte("slot");
             int id = nbtCompound.getInt("id");
-            ClientCosmetic cosmetic = ClientCosmeticStore.INSTANCE.get(id);
-            if(cosmetic == null) continue;
-            if(!equippedInventory[slotId].equip(cosmetic)) {
+            if(!equippedInventory[slotId].equip(id)) {
                 continue;
             }
             if(nbtCompound.contains("data")) {

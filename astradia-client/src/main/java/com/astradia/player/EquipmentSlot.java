@@ -1,43 +1,52 @@
 package com.astradia.player;
 
+import com.astradia.ClientCosmeticStore;
 import com.astradia.enums.BodyPart;
 import com.astradia.enums.SlotType;
 import com.astradia.pojo.ClientCosmetic;
 import com.astradia.pojo.Cosmetic;
 import net.minecraft.nbt.NbtCompound;
 
+import java.util.Optional;
+
 public class EquipmentSlot {
     private final SlotType slotType;
     private final BodyPart bodyPart;
 
-    private ClientCosmetic cosmetic;
+    private ClientCosmetic cachedCosmetic;
+    private Integer cosmeticId;
     protected NbtCompound storedData;
 
     public EquipmentSlot(BodyPart bodyPart, SlotType slotType) {
         this.slotType = slotType;
         this.bodyPart = bodyPart;
+        cosmeticId = null;
     }
 
-    public boolean equip(ClientCosmetic cosmetic) {
-        if(canBeEquipped(cosmetic)) {
-            this.storedData = new NbtCompound();
-            this.cosmetic = cosmetic;
-            return true;
-        }
-        return false;
+    public boolean equip(int cosmeticId) {
+        this.storedData = new NbtCompound();
+        this.cosmeticId = cosmeticId;
+        return true;
     }
 
     public void unequip() {
         this.storedData = null;
-        this.cosmetic = null;
+        this.cosmeticId = null;
     }
 
     private boolean canBeEquipped(ClientCosmetic cosmetic) {
         return bodyPart.equals(cosmetic.getBodyPart()) && slotType.equals(cosmetic.getSlotType());
     }
 
-    public ClientCosmetic getCosmetic() {
-        return cosmetic;
+    public ClientCosmetic getCachedCosmetic() {
+        if(cosmeticId != null && cachedCosmetic == null) {
+            cachedCosmetic = ClientCosmeticStore.INSTANCE.get(cosmeticId);
+        }
+        return cachedCosmetic;
+    }
+
+    public Integer getCosmeticId() {
+        return cosmeticId;
     }
 
     public void setStoredData(NbtCompound compound) {

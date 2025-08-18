@@ -28,7 +28,7 @@ public class DebugOverlay {
         context.getMatrices().push();
         context.getMatrices().scale(0.8f, 0.8f, 1);
         for (EquipmentSlot entry : entries) {
-            context.drawText(textRenderer, entry.getBodyPart().name() + "," + entry.getSlotType().name() + ": " + (entry.getCosmetic() == null ? "null" : entry.getCosmetic().getName()), 7, 16 + 9 * i++, 0xFFFFFFFF, true);
+            context.drawText(textRenderer, entry.getBodyPart().name() + "," + entry.getSlotType().name() + ": " + (entry.getCachedCosmetic() == null ? "null" : entry.getCachedCosmetic().getName()), 7, 16 + 9 * i++, 0xFFFFFFFF, true);
         }
         context.getMatrices().pop();
     }
