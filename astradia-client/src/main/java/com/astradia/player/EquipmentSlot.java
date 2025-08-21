@@ -4,10 +4,7 @@ import com.astradia.ClientCosmeticStore;
 import com.astradia.enums.BodyPart;
 import com.astradia.enums.SlotType;
 import com.astradia.pojo.ClientCosmetic;
-import com.astradia.pojo.Cosmetic;
 import net.minecraft.nbt.NbtCompound;
-
-import java.util.Optional;
 
 public class EquipmentSlot {
     private final SlotType slotType;

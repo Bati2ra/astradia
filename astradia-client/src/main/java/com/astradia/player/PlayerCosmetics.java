@@ -1,9 +1,7 @@
 package com.astradia.player;
 
-import com.astradia.ClientCosmeticStore;
 import com.astradia.enums.BodyPart;
 import com.astradia.enums.SlotType;
-import com.astradia.pojo.ClientCosmetic;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -12,7 +10,11 @@ import java.util.UUID;
 
 public class PlayerCosmetics extends PlayerFeature {
 
-    protected final EquipmentSlot[] equippedInventory = new EquipmentSlot[] {
+    protected final EquipmentSlot[] equippedInventory;
+
+    public PlayerCosmetics(UUID playerId) {
+        super("cosmetics", playerId);
+        equippedInventory = new EquipmentSlot[] {
                 new EquipmentSlot(BodyPart.HEAD, SlotType.BEARD),
                 new EquipmentSlot(BodyPart.HEAD, SlotType.HAIR),
                 new EquipmentSlot(BodyPart.HEAD, SlotType.ACCESSORY),
@@ -38,10 +40,7 @@ public class PlayerCosmetics extends PlayerFeature {
 
                 new EquipmentSlot(BodyPart.RIGHT_LEG, SlotType.REPLACE),
                 new EquipmentSlot(BodyPart.RIGHT_LEG, SlotType.CLAWS),
-    };
-
-    public PlayerCosmetics(UUID playerId) {
-        super("cosmetics", playerId);
+        };
     }
 
     @Override

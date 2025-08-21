@@ -4,8 +4,11 @@ import com.astradia.network.ClientNetworkManager;
 import com.astradia.player.PlayerManager;
 import com.astradia.render.layer.CosmeticLayer;
 
+import com.astradia.screen.WardrobeScreen;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +27,13 @@ public class AstradiaClient implements ModInitializer {
 		LivingEntityFeatureRendererRegistrationCallback.EVENT.register((entityType, entityRenderer, registrationHelper, context) -> {
 			if(entityRenderer instanceof PlayerEntityRenderer renderer) {
 				registrationHelper.register(new CosmeticLayer(renderer));
+			}
+		});
+		ClientTickEvents.END_CLIENT_TICK.register((client) -> {
+			if(client.player == null) return;
+
+			if(client.player.isSprinting()) {
+				MinecraftClient.getInstance().setScreen(new WardrobeScreen(null));
 			}
 		});
 		//ClientPlayerManager.INSTANCE.initialize();
