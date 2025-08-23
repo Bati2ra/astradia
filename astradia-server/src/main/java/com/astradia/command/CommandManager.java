@@ -3,10 +3,9 @@ package com.astradia.command;
 import com.astradia.AstradiaServer;
 import com.astradia.ServerCosmeticStore;
 import com.astradia.enums.BodyPart;
-import com.astradia.enums.ResponseType;
 import com.astradia.enums.SlotType;
 import com.astradia.player.PlayerData;
-import com.astradia.pojo.Cosmetic;
+import com.astradia.api.CosmeticInfo;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -22,6 +21,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -62,7 +62,7 @@ public class CommandManager {
             );
     public static final LiteralArgumentBuilder<ServerCommandSource> EQUIP_COMMAND = literal("equip")
             .then(argument("player", EntityArgumentType.player())
-                        .then(argument("slot", IntegerArgumentType.integer())
+                        .then(argument("slot", StringArgumentType.string())
                                 .then(argument("id", IntegerArgumentType.integer())
                                        .executes(context -> equipCosmetic(context, false))
                                         .then(argument("nbt", NbtCompoundArgumentType.nbtCompound())
@@ -74,10 +74,10 @@ public class CommandManager {
             );
     public static final LiteralArgumentBuilder<ServerCommandSource> UNEQUIP_COMMAND = literal("unequip")
             .then(argument("player", EntityArgumentType.player())
-                            .then(argument("slot", IntegerArgumentType.integer())
+                            .then(argument("slot", StringArgumentType.string())
                                     .executes(context -> {
                                         final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                                        final int slot = IntegerArgumentType.getInteger(context, "slot");
+                                        final Identifier slot = Identifier.of(StringArgumentType.getString(context, "slot"));
                                         AstradiaServer.getPlayerManager().getFromPlayer(player).getCosmetics().unequipCosmetic(slot);
 
                                         return 1;
@@ -98,7 +98,7 @@ public class CommandManager {
                                     context.getSource().sendFeedback(() -> Text.literal(cosmetics.showUnlockedCosmetics()), false);
                                 }
                                 if(option.contentEquals("network")) {
-                                    context.getSource().sendFeedback(() -> Text.literal(AstradiaServer.getPlayerManager().getFromPlayer(player).toNbt().asString()), false);
+                                    context.getSource().sendFeedback(() -> Text.literal(AstradiaServer.getPlayerManager().getFromPlayer(player).toJson().toString()), false);
                                 }
                                 return 1;
                             })
@@ -109,8 +109,8 @@ public class CommandManager {
 
 
                             .executes(context -> {
-                                var store = ServerCosmeticStore.INSTANCE.toNbt();
-                                context.getSource().sendFeedback(() -> Text.literal(store.asString()), false);
+                                var store = ServerCosmeticStore.INSTANCE.cachedSerializedCosmetics;
+                                context.getSource().sendFeedback(() -> Text.literal(store.toString()), false);
                                 return 1;
                             }
 
@@ -133,7 +133,7 @@ public class CommandManager {
     private static int equipCosmetic(CommandContext<ServerCommandSource> context, boolean hasNbt) throws CommandSyntaxException {
         final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
 
-        int slot = IntegerArgumentType.getInteger(context, "slot");
+        Identifier slot = Identifier.of(StringArgumentType.getString(context, "slot"));
         final Integer value = IntegerArgumentType.getInteger(context, "id");
         final NbtCompound nbt = hasNbt ?  NbtCompoundArgumentType.getNbtCompound(context, "nbt") : null;
 
@@ -143,11 +143,16 @@ public class CommandManager {
             return 0;
         }
         PlayerData playerData = AstradiaServer.getPlayerManager().getFromPlayer(player);
-        var result = playerData.getCosmetics().equipCosmetic(slot, cosmetic, nbt);
-        if(playerData.getCosmetics().isDirty()) {
-            AstradiaServer.getPlayerManager().sendToTrackingPlayersAndSelf(player);
+        try {
+            var result = playerData.getCosmetics().equipCosmetic(slot, cosmetic, nbt);
+            if(playerData.getCosmetics().isDirty()) {
+                AstradiaServer.getPlayerManager().sendToTrackingPlayersAndSelf(player);
+            }
+            context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);
+
         /*var result = ServerPlayerManager.INSTANCE.getFrom(player).equipItem(
                 cosmetic,
                 part,
@@ -188,19 +193,19 @@ public class CommandManager {
                 slotType = bodyPart.getSlots()[slotTypeIndex];
             } catch (Exception ignored) {}
         }
-        for (Map.Entry<Integer, Cosmetic> entry : ServerCosmeticStore.INSTANCE.getAll().entrySet()) {
+        for (Map.Entry<Integer, CosmeticInfo> entry : ServerCosmeticStore.INSTANCE.getAll().entrySet()) {
             if(bodyPart != null) {
-                if(!entry.getValue().getBodyPart().equals(bodyPart)) continue;
+                //if(!entry.getValue().getBodyPart().equals(bodyPart)) continue;
             }
             if(slotType != null) {
-                if(!entry.getValue().getSlotType().equals(slotType)) continue;
+                //if(!entry.getValue().getSlotType().equals(slotType)) continue;
             }
 
-            Text tooltip = Text.literal("Name: " + entry.getValue().getName() + ", ")
+            /*Text tooltip = Text.literal("Name: " + entry.getValue().getName() + ", ")
                     .append(Text.literal("Body Part: " + entry.getValue().getBodyPart().name() + ", "))
                     .append(Text.literal("Slot Type: " + entry.getValue().getSlotType().name()));
             builder.suggest(entry.getKey(), tooltip); // ID con nombre
-        }
+        */}
         return builder.buildFuture();
     }
 

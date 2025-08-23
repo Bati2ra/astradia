@@ -1,16 +1,19 @@
 package com.astradia.player;
 
-import com.astradia.AstradiaServer;
 import com.astradia.ServerCosmeticStore;
+import com.astradia.api.player.CosmeticSlot;
+import com.astradia.api.player.PlayerCosmeticData;
 import com.astradia.enums.ResponseType;
-import com.astradia.pojo.Cosmetic;
-import com.astradia.pojo.PlayerCosmeticsPersistable;
+import com.astradia.api.CosmeticInfo;
 import com.astradia.utils.CosmeticResponse;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.astradia.utils.SlotUtils;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.StringNbtReader;
+import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -18,31 +21,32 @@ import java.util.*;
 public class PlayerCosmetics extends PlayerFeature {
     protected final HashSet<Integer> unlockedCosmetics = new HashSet<>();
 
-    protected final EquipmentSlot[] equippedInventory = AstradiaServer.getEquipmentSlots();
+    protected final Map<Identifier, CosmeticSlot> equippedInventory = SlotUtils.getPlayerEquipmentSlots();
 
     public PlayerCosmetics(UUID playerId) {
         super("cosmetics", playerId);
     }
 
-    public CosmeticResponse equipCosmetic(int slotId, Cosmetic cosmetic, @Nullable NbtCompound nbt) {
+    public CosmeticResponse equipCosmetic(Identifier slotId, CosmeticInfo cosmetic, @Nullable NbtCompound nbt) {
         if(!isUnlocked(cosmetic.getId())) return CosmeticResponse.of(ResponseType.LOCKED);
-        boolean wasEquipped = equippedInventory[slotId].equip(cosmetic);
+        boolean wasEquipped = equippedInventory.get(slotId).equip(cosmetic);
         if(!wasEquipped) return CosmeticResponse.of(ResponseType.ERROR);
         if(nbt != null) {
-            equippedInventory[slotId].setStoredData(nbt);
+            // TODO equippedInventory[slotId].getCosmeticData().getTypeData(AnimatableType.PlayerData.class);
         }
         isDirty = true;
         return CosmeticResponse.of(ResponseType.SUCCESS);
     }
 
-    public CosmeticResponse unequipCosmetic(int slotId) {
-        equippedInventory[slotId].unequip();
+    public CosmeticResponse unequipCosmetic(Identifier slotId) {
+        equippedInventory.get(slotId).clear();
+        isDirty = true;
         return CosmeticResponse.of(ResponseType.SUCCESS);
     }
 
     public CosmeticResponse clearSlots() {
-        for (EquipmentSlot slot : equippedInventory) {
-            slot.unequip();
+        for (CosmeticSlot slot : equippedInventory.values()) {
+            slot.clear();
         }
         return CosmeticResponse.of(ResponseType.SUCCESS);
     }
@@ -59,14 +63,8 @@ public class PlayerCosmetics extends PlayerFeature {
         return builder.toString();
     }
 
-
-    @Override
-    public void sync(PlayerEntity player) {
-        isDirty = false;
-    }
-
     public CosmeticResponse unlockAll() {
-        for (Cosmetic value : ServerCosmeticStore.INSTANCE.getAll().values()) {
+        for (CosmeticInfo value : ServerCosmeticStore.INSTANCE.getAll().values()) {
             unlockedCosmetics.add(value.getId());
         }
         isDirty = true;
@@ -84,67 +82,63 @@ public class PlayerCosmetics extends PlayerFeature {
 
     public String showEquipment() {
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < equippedInventory.length; i++) {
-            EquipmentSlot slot = equippedInventory[i];
-            builder.append(String.format("Slot #%s - %s - %s", i, slot.getBodyPart().name(), slot.getSlotType().name()));
-            builder.append(String.format("  - %s", slot.getCosmetic() != null ? slot.getCosmetic().getName() : "Vacío"));
+        for (CosmeticSlot value : equippedInventory.values()) {
+            builder.append(String.format("Slot - %s - %s", value.getName().toString(), value.getCategory()));
+            builder.append(String.format("  - %s", value.getCosmeticData() != null ? value.getCosmeticData().getCosmetic().getName() : "Vacío"));
         }
         return builder.toString();
     }
 
     @Override
-    public NbtCompound serialize() {
-        NbtCompound tag = new NbtCompound();
-        NbtList list = new NbtList();
-        for (int i = 0; i < equippedInventory.length; i++) {
-            EquipmentSlot slot = equippedInventory[i];
-            if(slot.getCosmetic() == null) continue;
-            NbtCompound cosmeticData = new NbtCompound();
-            cosmeticData.putByte("slot", (byte)i);
-            cosmeticData.putInt("id", slot.getCosmetic().getId());
-            if(slot.getStoredData() != null) {
-                cosmeticData.put("data", slot.getStoredData());
-            }
-            list.add(cosmeticData);
+    public JsonObject toJson() {
+        JsonObject jsonObject = new JsonObject();
+        JsonObject jsonEquipped = new JsonObject();
+        JsonArray jsonArray = new JsonArray();
+        for (Integer unlockedCosmetic : unlockedCosmetics) {
+            jsonArray.add(unlockedCosmetic);
         }
-        tag.put("equipped", list);
-        return tag;
+        jsonObject.add("unlocked", jsonArray);
+
+        for (Map.Entry<Identifier, CosmeticSlot> entry : equippedInventory.entrySet()) {
+            PlayerCosmeticData data = entry.getValue().getCosmeticData();
+            if(data == null) continue;
+            jsonEquipped.add(entry.getKey().toString(), data.toJson());
+        }
+        jsonObject.add("equipped", jsonEquipped);
+        return jsonObject;
     }
 
     @Override
-    public void deserialize(NbtCompound tag) {
-
-    }
-
-    public PlayerCosmeticsPersistable toPersistable() {
-        PlayerCosmeticsPersistable persistable = new PlayerCosmeticsPersistable();
-        persistable.unlockedCosmetics = new HashSet<>(unlockedCosmetics);
-        persistable.equippedInventory = new PlayerCosmeticsPersistable.EquipmentSlotPersistable[equippedInventory.length];
-        for (int i = 0; i < equippedInventory.length; i++) {
-            var slot = new PlayerCosmeticsPersistable.EquipmentSlotPersistable();
-            slot.slotId = i;
-            slot.cosmeticId = equippedInventory[i].getCosmetic() == null ? -1 : equippedInventory[i].getCosmetic().getId();
-            if(equippedInventory[i].storedData != null) {
-                slot.storedData = equippedInventory[i].storedData.asString();
-            }
-            persistable.equippedInventory[i] = slot;
-        }
-        return persistable;
-    }
-
-    public void fromPersistable(PlayerCosmeticsPersistable persistable) {
+    public void fromJson(@NotNull JsonObject json) {
         unlockedCosmetics.clear();
-        unlockedCosmetics.addAll(persistable.unlockedCosmetics);
-        for (int i = 0; i < persistable.equippedInventory.length; i++) {
-            var slot = persistable.equippedInventory[i];
-            if(slot.cosmeticId == -1) continue;
-            Cosmetic cosmetic = ServerCosmeticStore.INSTANCE.get(slot.cosmeticId);
-            equippedInventory[slot.slotId].equip(cosmetic);
-            if(slot.storedData != null) {
+        clearSlots();
+
+        if(json.has("unlocked") && json.get("unlocked").isJsonArray()) {
+            JsonArray unlockedArray = json.getAsJsonArray("unlocked");
+            for (JsonElement unlocked : unlockedArray) {
+                unlockedCosmetics.add(unlocked.getAsInt());
+            }
+        }
+        JsonObject jsonEquipped = json.has("equipped") ? json.get("equipped").getAsJsonObject() : null;
+        if (jsonEquipped != null) {
+            for (Map.Entry<String, JsonElement> entry : jsonEquipped.entrySet()) {
+                Identifier id;
                 try {
-                    equippedInventory[slot.slotId].setStoredData(StringNbtReader.parse(slot.storedData));
-                } catch (CommandSyntaxException e) {
-                    equippedInventory[slot.slotId].setStoredData(null);
+                    id = Identifier.of(entry.getKey());
+                } catch (Exception e) {
+                    // Clave inválida → ignorar
+                    continue;
+                }
+                var slot = equippedInventory.get(id);
+                if(slot == null) {
+                    // Slot no existe → ignorar
+                    continue;
+                }
+                try {
+                    slot.setCosmeticData(new PlayerCosmeticData(ServerCosmeticStore.INSTANCE, entry.getValue().getAsJsonObject()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    slot.clear();
                 }
             }
         }

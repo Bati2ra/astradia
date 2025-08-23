@@ -1,5 +1,6 @@
 package com.astradia.api.player;
 
+import com.astradia.api.CosmeticInfo;
 import net.minecraft.util.Identifier;
 
 public class Slot {
@@ -21,5 +22,9 @@ public class Slot {
 
     public String getCategory() {
         return category;
+    }
+
+    public boolean equip(CosmeticInfo cosmetic) {
+        return false;
     }
 }

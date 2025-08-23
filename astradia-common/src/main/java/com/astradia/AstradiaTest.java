@@ -28,13 +28,13 @@ public class AstradiaTest implements ModInitializer  {
         cosmeticInfo.addType(new ModelType(Identifier.of("dpz", "textures/black_beard"), Identifier.of("dpz", "models/black_beard")));
         cosmeticInfo.addType(new AnimatableType());
 
-        var slot = new CosmeticSlot(Identifier.of("test"));
-        slot.equip(cosmeticInfo);
+        //var slot = new CosmeticSlot(Identifier.of("test"));
+        //slot.equip(cosmeticInfo);
 
-        var cosmeticData = slot.getCosmeticData();
-        cosmeticData.getTypeData(AnimatableType.PlayerData.class).ifPresent(t -> t.setAnimation(Identifier.of("dpz", "coetenegro")));
+        //var cosmeticData = slot.getCosmeticData();
+        //cosmeticData.getTypeData(AnimatableType.PlayerData.class).ifPresent(t -> t.setAnimation(Identifier.of("dpz", "coetenegro")));
 
-        printCosmetics(readCosmetics());
+        //printCosmetics(readCosmetics());
     }
 
     public List<CosmeticInfo> readCosmetics() {

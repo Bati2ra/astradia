@@ -105,7 +105,7 @@ public class PlayerManager {
      */
     public void sendToPlayer(ServerPlayerEntity source, ServerPlayerEntity target) {
         PlayerData playerData = getFromPlayer(source);
-        NetworkManager.sendToPlayer(target, new PlayerDataPayload(playerData.toNbt()));
+        NetworkManager.sendToPlayer(target, new PlayerDataPayload(playerData.toJson().toString()));
 
         AstradiaServer.LOGGER.debug("[PlayerData] Enviando datos de {} -> {}.", source.getName().getString(), target.getName().getString());
     }
@@ -124,7 +124,7 @@ public class PlayerManager {
     private void sendToTrackingPlayers(ServerPlayerEntity player, boolean withSelf) {
         PlayerData playerData = getFromPlayer(player);
 
-        PlayerDataPayload payload = new PlayerDataPayload(playerData.toNbt());
+        PlayerDataPayload payload = new PlayerDataPayload(playerData.toJson().toString());
         if(withSelf) ServerPlayNetworking.send(player, payload);
         Collection<ServerPlayerEntity> trackingPlayers = PlayerLookup.tracking(player);
         for (ServerPlayerEntity serverPlayerEntity : trackingPlayers) {

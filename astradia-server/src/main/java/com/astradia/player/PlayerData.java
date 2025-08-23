@@ -1,5 +1,6 @@
 package com.astradia.player;
 
+import com.google.gson.JsonObject;
 import net.minecraft.nbt.NbtCompound;
 
 import java.util.HashMap;
@@ -51,24 +52,18 @@ public class PlayerData implements IPlayerData {
         this.loading = loading;
     }
 
-    @Override
-    public NbtCompound toNbt() {
-        NbtCompound tag = new NbtCompound();
-        NbtCompound featureTag = new NbtCompound();
-        tag.putUuid("uuid", getUuid());
+    public JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        JsonObject jsonFeatures = new JsonObject();
+        json.addProperty("uuid", getUuid().toString());
         for (PlayerFeature value : features.values()) {
-            featureTag.put(value.identifier, value.serialize());
+            jsonFeatures.add(value.identifier, value.toJson());
         }
-        tag.put("features", featureTag);
-        return tag;
+        json.add("features", jsonFeatures);
+        return json;
     }
 
-    @Override
-    public void fromNbt(NbtCompound tag) {
+    public void fromJson(JsonObject json) {
         // TODO
-        for (PlayerFeature value : features.values()) {
-            NbtCompound nbtTag = tag.getCompound(value.identifier);
-            value.deserialize(nbtTag);
-        }
     }
 }

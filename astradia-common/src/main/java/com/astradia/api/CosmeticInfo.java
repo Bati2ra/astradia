@@ -75,7 +75,7 @@ public class CosmeticInfo {
         for (CosmeticProperty<?> type : properties.values()) {
             typesArray.add(GsonUtils.GSON.toJsonTree(type));
         }
-        json.add("types", typesArray);
+        json.add("properties", typesArray);
 
         return json;
     }
@@ -87,7 +87,7 @@ public class CosmeticInfo {
 
         CosmeticInfo cosmetic = new CosmeticInfo(id, name, slotId);
 
-        JsonArray typesArray = json.getAsJsonArray("types");
+        JsonArray typesArray = json.getAsJsonArray("properties");
         for (JsonElement el : typesArray) {
             CosmeticProperty<?> typeInstance = GsonUtils.GSON.fromJson(el, CosmeticProperty.class);
             if (typeInstance != null) {

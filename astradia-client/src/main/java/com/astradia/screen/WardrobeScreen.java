@@ -14,7 +14,7 @@ public class WardrobeScreen extends AdvancedScreen {
 
     @Override
     public void build() {
-        Container
+
     }
 
     @Override

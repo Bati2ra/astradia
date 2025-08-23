@@ -37,7 +37,7 @@ public class EquipmentSlot {
 
     public ClientCosmetic getCachedCosmetic() {
         if(cosmeticId != null && cachedCosmetic == null) {
-            cachedCosmetic = ClientCosmeticStore.INSTANCE.get(cosmeticId);
+           // cachedCosmetic = ClientCosmeticStore.INSTANCE.get(cosmeticId);
         }
         return cachedCosmetic;
     }

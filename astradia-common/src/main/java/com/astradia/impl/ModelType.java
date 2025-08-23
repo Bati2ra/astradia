@@ -23,7 +23,7 @@ public class ModelType extends CosmeticProperty<CosmeticProperty.PlayerData> {
 
     @Override
     public Class<PlayerData> getPlayerDataClass() {
-        return null;
+        return CosmeticProperty.PlayerData.class;
     }
 
     @Override

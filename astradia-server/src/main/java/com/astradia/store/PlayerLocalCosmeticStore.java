@@ -1,9 +1,8 @@
 package com.astradia.store;
 
-import com.astradia.pojo.PlayerCosmeticsPersistable;
-import com.astradia.utils.JsonUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
@@ -12,7 +11,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public class PlayerLocalCosmeticStore implements Store<PlayerCosmeticsPersistable, UUID> {
+public class PlayerLocalCosmeticStore implements Store<JsonObject, UUID> {
 
     private final File dataFolder;
     private final Gson gson;
@@ -29,7 +28,7 @@ public class PlayerLocalCosmeticStore implements Store<PlayerCosmeticsPersistabl
 
 
     @Override
-    public void save(UUID id, PlayerCosmeticsPersistable entity) {
+    public void save(UUID id, JsonObject entity) {
         File file = getFile(id);
         try (FileWriter writer = new FileWriter(file)) {
             gson.toJson(entity, writer);
@@ -41,26 +40,26 @@ public class PlayerLocalCosmeticStore implements Store<PlayerCosmeticsPersistabl
     }
 
     @Override
-    public Optional<PlayerCosmeticsPersistable> findById(UUID uuid) {
+    public Optional<JsonObject> findById(UUID uuid) {
         File file = getFile(uuid);
 
-        if (!file.exists()) return Optional.of(new PlayerCosmeticsPersistable());
+        if (!file.exists()) return Optional.of(new JsonObject());
 
         try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-            PlayerCosmeticsPersistable data = gson.fromJson(reader, PlayerCosmeticsPersistable.class);
+            JsonObject data = gson.fromJson(reader, JsonObject.class);
             return Optional.ofNullable(data);
         } catch (JsonSyntaxException e) {
             System.err.println("[LocalStore] Error de sintaxis en el JSON del jugador " + uuid + ": " + e.getMessage());
-            return Optional.of(new PlayerCosmeticsPersistable());
+            return Optional.of(new JsonObject());
         } catch (IOException e) {
             System.err.println("[LocalStore] Error leyendo el archivo del jugador " + uuid);
             e.printStackTrace();
-            return Optional.of(new PlayerCosmeticsPersistable());
+            return Optional.of(new JsonObject());
         }
     }
 
     @Override
-    public List<PlayerCosmeticsPersistable> findAll() {
+    public List<JsonObject> findAll() {
         return new ArrayList<>();
     }
 
@@ -71,7 +70,7 @@ public class PlayerLocalCosmeticStore implements Store<PlayerCosmeticsPersistabl
     }
 
     @Override
-    public void saveAll(Map<UUID, PlayerCosmeticsPersistable> map) {
+    public void saveAll(Map<UUID, JsonObject> map) {
         System.out.println("[LocalCosmetics] Guardados " + map.size() + " datos en memoria.");
     }
 }

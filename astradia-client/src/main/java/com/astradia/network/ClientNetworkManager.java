@@ -6,6 +6,8 @@ import com.astradia.ClientCosmeticStore;
 import com.astradia.network.payloads.CosmeticsDataPayload;
 import com.astradia.network.payloads.PlayerDataPayload;
 import com.astradia.network.payloads.PlayerReadyPayload;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.nbt.NbtCompound;
@@ -22,29 +24,19 @@ public class ClientNetworkManager {
 
         ClientPlayNetworking.registerGlobalReceiver(PlayerDataPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
-                NbtCompound data = payload.nbtCompound();
-                System.out.println("Received data:");
-                System.out.println("Data: " + data.asString());
-                AstradiaClient.getPlayerManager().receiveServerPlayerData(data);
-                NbtCompound cosmeticsData = data.getCompound("cosmetics");
-                for (String key : cosmeticsData.getKeys()) {
-                    System.out.println(key + " " + cosmeticsData.get(key).toString());
-                }
+                String data = payload.data();
+                JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+                AstradiaClient.getPlayerManager().receiveServerPlayerData(jsonObject);
             });
         });
 
         // Convertir en un handshake, si el cliente recibio cierta informacion, esta listo para recibir otra relacionada
         ClientPlayNetworking.registerGlobalReceiver(CosmeticsDataPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
-                NbtCompound data = payload.nbtCompound();
-                NbtList list = (NbtList) data.get("cosmetics");
-                System.out.println("Received cosmetics data:");
-                ClientCosmeticStore.INSTANCE.receiveServerStore(data);
-                for (NbtElement key : list) {
-                    if(key instanceof NbtCompound nbtCompound) {
-                        System.out.println(nbtCompound);
-                    }
-                }
+                String data = payload.data();
+                JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
+                ClientCosmeticStore.INSTANCE.receiveServerStore(jsonObject);
+
                 // Indicar al servidor que el cliente esta listo para recibir mensajes
                 ClientPlayNetworking.send(new PlayerReadyPayload());
             });

@@ -16,7 +16,7 @@ public abstract class CosmeticProperty<T extends CosmeticProperty.PlayerData> {
 
     public interface PlayerData {
 
-        JsonObject toJson();
+        default JsonObject toJson() { return null; };
         void fromJson(JsonObject json);
     }
 

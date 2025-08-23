@@ -15,11 +15,11 @@ public class CosmeticSlot extends Slot {
     }
 
     public boolean equip(CosmeticInfo cosmetic) {
-        //if(cosmetic.getSlotType().equals(slotType) && cosmetic.getBodyPart().equals(bodyPart)) {
+        if(cosmetic.getSlotId().equals(this.getName())) {
             cosmeticData = new PlayerCosmeticData(cosmetic);
             return true;
-        //}
-        //return false;
+        }
+        return false;
     }
 
     public void clear() {
@@ -28,5 +28,9 @@ public class CosmeticSlot extends Slot {
 
     public PlayerCosmeticData getCosmeticData() {
         return cosmeticData;
+    }
+
+    public void setCosmeticData(PlayerCosmeticData cosmeticData) {
+        this.cosmeticData = cosmeticData;
     }
 }

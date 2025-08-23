@@ -1,37 +1,34 @@
 package com.astradia.utils;
 
 import com.astradia.api.player.CosmeticSlot;
-import com.astradia.api.player.Slot;
 import net.minecraft.util.Identifier;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class SlotUtils {
-    public static Slot[] getPlayerEquipmentSlots() {
-        return new Slot[] {
-                new CosmeticSlot(Identifier.of("head", "beard"), "head"),
-                new CosmeticSlot(Identifier.of("head", "hair"), "head"),
-                new CosmeticSlot(Identifier.of("head", "accessory"), "head"),
-                new CosmeticSlot(Identifier.of("head", "accessory"), "head"),
-                new CosmeticSlot(Identifier.of("head", "horns"), "head"),
-                new CosmeticSlot(Identifier.of("head", "horns"), "head"),
-                new CosmeticSlot(Identifier.of("head", "ears"), "head"),
+    public static Map<Identifier, CosmeticSlot> getPlayerEquipmentSlots() {
+        Map<Identifier, CosmeticSlot> slots = new HashMap<>();
 
-                new CosmeticSlot(Identifier.of("torso", "accessory"), "torso"),
-                new CosmeticSlot(Identifier.of("torso", "accessory"), "torso"),
-                new CosmeticSlot(Identifier.of("torso", "tail"), "torso"),
+        slots.put(Identifier.of("head", "beard"), new CosmeticSlot(Identifier.of("head", "beard"), "head"));
+        slots.put(Identifier.of("head", "hair"), new CosmeticSlot(Identifier.of("head", "hair"), "head"));
+        slots.put(Identifier.of("head", "accessory"), new CosmeticSlot(Identifier.of("head", "accessory"), "head"));
+        slots.put(Identifier.of("head", "secondary_accessory"), new CosmeticSlot(Identifier.of("head", "accessory"), "head"));
+        slots.put(Identifier.of("head", "horns"), new CosmeticSlot(Identifier.of("head", "horns"), "head"));
+        slots.put(Identifier.of("head", "secondary_horns"), new CosmeticSlot(Identifier.of("head", "horns"), "head"));
+        slots.put(Identifier.of("head", "ears"), new CosmeticSlot(Identifier.of("head", "ears"), "head"));
 
-                new CosmeticSlot(Identifier.of("left_arm", "replace"), "left_arm"),
-                new CosmeticSlot(Identifier.of("left_arm", "claws"), "left_arm"),
-                new CosmeticSlot(Identifier.of("left_arm", "wings"), "left_arm"),
+        slots.put(Identifier.of("torso", "accessory"), new CosmeticSlot(Identifier.of("torso", "accessory"), "torso"));
+        slots.put(Identifier.of("torso", "secondary_accessory"), new CosmeticSlot(Identifier.of("torso", "accessory"), "torso"));
+        slots.put(Identifier.of("torso", "tail"), new CosmeticSlot(Identifier.of("torso", "tail"), "torso"));
 
-                //new EquipmentSlot(BodyPart.RIGHT_ARM, SlotType.REPLACE),
-                //new EquipmentSlot(BodyPart.RIGHT_ARM, SlotType.CLAWS),
-                //new EquipmentSlot(BodyPart.RIGHT_ARM, SlotType.WINGS),
+        slots.put(Identifier.of("arms", "replace"), new CosmeticSlot(Identifier.of("arms", "replace"), "arms"));
+        slots.put(Identifier.of("arms", "claws"), new CosmeticSlot(Identifier.of("arms", "claws"), "arms"));
+        slots.put(Identifier.of("arms", "wings"), new CosmeticSlot(Identifier.of("arms", "wings"), "arms"));
 
-                new CosmeticSlot(Identifier.of("left_leg", "replace"), "left_leg"),
-                new CosmeticSlot(Identifier.of("left_leg", "claws"), "left_leg"),
+        slots.put(Identifier.of("legs", "replace"), new CosmeticSlot(Identifier.of("legs", "replace"), "legs"));
+        slots.put(Identifier.of("legs", "claws"), new CosmeticSlot(Identifier.of("legs", "claws"), "legs"));
 
-                //new EquipmentSlot(BodyPart.RIGHT_LEG, SlotType.REPLACE),
-                //new EquipmentSlot(BodyPart.RIGHT_LEG, SlotType.CLAWS),
-        };
+        return slots;
     }
 }

@@ -1,13 +1,8 @@
 package com.astradia.network;
 
-import com.astradia.AstradiaConstants;
-import com.astradia.AstradiaServer;
 import com.astradia.network.payloads.CosmeticsDataPayload;
 import com.astradia.network.payloads.PlayerDataPayload;
 import com.astradia.network.payloads.PlayerReadyPayload;
-import com.astradia.player.PlayerData;
-import com.astradia.player.PlayerManager;
-import com.astradia.player.PlayerState;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
