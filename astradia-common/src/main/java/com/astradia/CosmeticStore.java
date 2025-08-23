@@ -1,11 +1,11 @@
 package com.astradia;
 
-import com.astradia.pojo.CosmeticBase;
+import com.astradia.api.CosmeticInfo;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class CosmeticStore<T extends CosmeticBase> {
+public class CosmeticStore<T extends CosmeticInfo> {
     protected final HashMap<Integer, T> cosmetics = new HashMap<>();
 
     private void load() {
