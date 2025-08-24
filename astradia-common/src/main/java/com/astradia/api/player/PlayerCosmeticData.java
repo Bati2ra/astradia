@@ -57,7 +57,7 @@ public class PlayerCosmeticData {
      * @param json  JsonObject con los datos del jugador
      * @throws Exception si hay discrepancias en los datos o formato incorrecto
      */
-    public PlayerCosmeticData(CosmeticStore<CosmeticInfo> store, JsonObject json) throws Exception {
+    public PlayerCosmeticData(CosmeticStore<? extends CosmeticInfo> store, JsonObject json) throws Exception {
         cosmeticInfo = store.get(json.get("id").getAsInt());
         typeData = new HashMap<>();
         JsonObject jsonProperties = json.getAsJsonObject("properties");

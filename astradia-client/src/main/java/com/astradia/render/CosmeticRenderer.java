@@ -1,6 +1,8 @@
 package com.astradia.render;
 
-import com.astradia.pojo.ClientCosmetic;
+import com.astradia.impl.AnimatableType;
+import com.astradia.impl.ModelType;
+import com.astradia.pojo.ClientCosmeticInfo;
 import com.astradia.pojo.CosmeticAnimatable;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.RenderLayer;
@@ -22,10 +24,10 @@ import software.bernie.geckolib.util.RenderUtil;
 import java.util.Iterator;
 
 public class CosmeticRenderer extends GeoObjectRenderer<CosmeticAnimatable> {
-    private final ClientCosmetic cosmetic;
+    private final ClientCosmeticInfo cosmetic;
     private final CosmeticAnimatable animatable;
 
-    public CosmeticRenderer(ClientCosmetic cosmetic, CosmeticAnimatable animatable) {
+    public CosmeticRenderer(ClientCosmeticInfo cosmetic, CosmeticAnimatable animatable) {
         super(new Model(cosmetic));
         this.cosmetic = cosmetic;
         this.animatable = animatable;
@@ -114,25 +116,28 @@ public class CosmeticRenderer extends GeoObjectRenderer<CosmeticAnimatable> {
     }
 
     static class Model extends GeoModel<CosmeticAnimatable> {
-        ClientCosmetic cosmetic;
-        public Model(ClientCosmetic cosmetic){
+        ClientCosmeticInfo cosmetic;
+        public Model(ClientCosmeticInfo cosmetic){
             this.cosmetic = cosmetic;
         }
 
 
         @Override
         public Identifier getModelResource(CosmeticAnimatable cosmeticAnimatable, @Nullable GeoRenderer<CosmeticAnimatable> geoRenderer) {
-            return cosmetic.getModelPath();
+            var property = cosmetic.getProperty(ModelType.class);
+            return property.map(ModelType::getModelPath).orElse(null);
         }
 
         @Override
         public Identifier getTextureResource(CosmeticAnimatable cosmeticAnimatable, @Nullable GeoRenderer<CosmeticAnimatable> geoRenderer) {
-            return cosmetic.getTexturePath();
+            var property = cosmetic.getProperty(ModelType.class);
+            return property.map(ModelType::getTexturePath).orElse(null);
         }
 
         @Override
         public Identifier getAnimationResource(CosmeticAnimatable cosmeticAnimatable) {
-            return cosmetic.getAnimationPath();
+            var property = cosmetic.getProperty(AnimatableType.class);
+            return property.map(AnimatableType::getAnimationPath).orElse(null);
         }
     }
 }

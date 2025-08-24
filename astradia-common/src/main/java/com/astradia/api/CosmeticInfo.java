@@ -1,7 +1,5 @@
 package com.astradia.api;
 
-import com.astradia.enums.BodyPart;
-import com.astradia.enums.SlotType;
 import com.astradia.utils.GsonUtils;
 import com.google.gson.*;
 import net.minecraft.util.Identifier;
@@ -28,13 +26,37 @@ public class CosmeticInfo {
         properties = new HashMap<>();
     }
 
-    public <T extends CosmeticProperty<?>> void addType(T type) {
-        type.validate(this);
+    public CosmeticInfo(JsonObject json) throws Exception {
+        clazz = getClass().getName();
+        properties = new HashMap<>();
+
+        this.id = json.get("id").getAsInt();
+        this.name = json.get("name").getAsString();
+        this.slotId = Identifier.of(json.get("slotId").getAsString());
+
+        JsonArray typesArray = json.getAsJsonArray("properties");
+        for (JsonElement el : typesArray) {
+            CosmeticProperty<?> typeInstance = GsonUtils.GSON.fromJson(el, CosmeticProperty.class);
+            if (typeInstance != null) {
+                addProperty(typeInstance);
+            }
+        }
+        validateProperties();
+    }
+
+    public void validateProperties() {
+        for (CosmeticProperty<?> value : properties.values()) {
+            value.validate(this);
+        }
+    }
+
+    public <T extends CosmeticProperty<?>> void addProperty(T type) {
+        //type.validate(this);
         properties.put(type.getKey(), type);
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends CosmeticProperty<?>> Optional<T> getType(Class<T> typeClass) {
+    public <T extends CosmeticProperty<?>> Optional<T> getProperty(Class<T> typeClass) {
         return Optional.ofNullable((T) properties.get(typeClass));
     }
 
@@ -78,23 +100,5 @@ public class CosmeticInfo {
         json.add("properties", typesArray);
 
         return json;
-    }
-
-    public static CosmeticInfo fromJson(JsonObject json) {
-        Integer id = json.get("id").getAsInt();
-        String name = json.get("name").getAsString();
-        Identifier slotId = Identifier.of(json.get("slotId").getAsString());
-
-        CosmeticInfo cosmetic = new CosmeticInfo(id, name, slotId);
-
-        JsonArray typesArray = json.getAsJsonArray("properties");
-        for (JsonElement el : typesArray) {
-            CosmeticProperty<?> typeInstance = GsonUtils.GSON.fromJson(el, CosmeticProperty.class);
-            if (typeInstance != null) {
-                cosmetic.addType(typeInstance);
-            }
-        }
-
-        return cosmetic;
     }
 }

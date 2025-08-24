@@ -29,9 +29,15 @@ public class AnimatableType extends CosmeticProperty<AnimatableType.PlayerData> 
             animationPath = Identifier.of(json.get("animationPath").getAsString());
         }
     }
+    private final Identifier animationPath;
 
-    public AnimatableType() {
+    public AnimatableType(Identifier animationPath) {
         super();
+        this.animationPath = animationPath;
+    }
+
+    public Identifier getAnimationPath() {
+        return animationPath;
     }
 
     @Override

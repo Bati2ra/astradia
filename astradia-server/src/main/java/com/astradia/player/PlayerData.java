@@ -1,7 +1,6 @@
 package com.astradia.player;
 
 import com.google.gson.JsonObject;
-import net.minecraft.nbt.NbtCompound;
 
 import java.util.HashMap;
 import java.util.Map;

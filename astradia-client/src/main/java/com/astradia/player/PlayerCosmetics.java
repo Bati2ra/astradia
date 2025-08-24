@@ -1,65 +1,68 @@
 package com.astradia.player;
 
-import com.astradia.enums.BodyPart;
-import com.astradia.enums.SlotType;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
+import com.astradia.ClientCosmeticStore;
+import com.astradia.api.player.CosmeticSlot;
+import com.astradia.api.player.PlayerCosmeticData;
+import com.astradia.utils.SlotUtils;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class PlayerCosmetics extends PlayerFeature {
 
-    protected final EquipmentSlot[] equippedInventory;
+    protected final Map<Identifier, ClientCosmeticSlot> equippedInventory;
 
     public PlayerCosmetics(UUID playerId) {
         super("cosmetics", playerId);
-        equippedInventory = new EquipmentSlot[] {
-                new EquipmentSlot(BodyPart.HEAD, SlotType.BEARD),
-                new EquipmentSlot(BodyPart.HEAD, SlotType.HAIR),
-                new EquipmentSlot(BodyPart.HEAD, SlotType.ACCESSORY),
-                new EquipmentSlot(BodyPart.HEAD, SlotType.ACCESSORY),
-                new EquipmentSlot(BodyPart.HEAD, SlotType.HORNS),
-                new EquipmentSlot(BodyPart.HEAD, SlotType.HORNS),
-                new EquipmentSlot(BodyPart.HEAD, SlotType.EARS),
+        equippedInventory = new HashMap<>();
+        var slots = SlotUtils.getPlayerEquipmentSlots();
+        for (Map.Entry<Identifier, CosmeticSlot> entry : slots.entrySet()) {
+            equippedInventory.put(entry.getKey(), new ClientCosmeticSlot(entry.getValue().getName(), entry.getValue().getCategory()));
+        }
+    }
 
-                new EquipmentSlot(BodyPart.TORSO, SlotType.ACCESSORY),
-                new EquipmentSlot(BodyPart.TORSO, SlotType.ACCESSORY),
-                new EquipmentSlot(BodyPart.TORSO, SlotType.TAIL),
-
-                new EquipmentSlot(BodyPart.LEFT_ARM, SlotType.REPLACE),
-                new EquipmentSlot(BodyPart.LEFT_ARM, SlotType.CLAWS),
-                new EquipmentSlot(BodyPart.LEFT_ARM, SlotType.WINGS),
-
-                new EquipmentSlot(BodyPart.RIGHT_ARM, SlotType.REPLACE),
-                new EquipmentSlot(BodyPart.RIGHT_ARM, SlotType.CLAWS),
-                new EquipmentSlot(BodyPart.RIGHT_ARM, SlotType.WINGS),
-
-                new EquipmentSlot(BodyPart.LEFT_LEG, SlotType.REPLACE),
-                new EquipmentSlot(BodyPart.LEFT_LEG, SlotType.CLAWS),
-
-                new EquipmentSlot(BodyPart.RIGHT_LEG, SlotType.REPLACE),
-                new EquipmentSlot(BodyPart.RIGHT_LEG, SlotType.CLAWS),
-        };
+    public void clearSlots() {
+        for (CosmeticSlot slot : equippedInventory.values()) {
+            slot.clear();
+        }
     }
 
     @Override
-    public void deserialize(NbtCompound tag) {
-        NbtList list = (NbtList) tag.get("equipped");
-        for (NbtElement nbtElement : list) {
-            if(!(nbtElement instanceof NbtCompound nbtCompound)) continue;
-            int slotId = nbtCompound.getByte("slot");
-            int id = nbtCompound.getInt("id");
-            if(!equippedInventory[slotId].equip(id)) {
-                continue;
-            }
-            if(nbtCompound.contains("data")) {
-                equippedInventory[slotId].setStoredData(nbtCompound.getCompound("data"));
+    public void fromJson(@NotNull JsonObject json) {
+        clearSlots();
+        JsonObject jsonEquipped = json.has("equipped") ? json.get("equipped").getAsJsonObject() : null;
+        if (jsonEquipped != null) {
+            for (Map.Entry<String, JsonElement> entry : jsonEquipped.entrySet()) {
+                Identifier id;
+                try {
+                    id = Identifier.of(entry.getKey());
+                } catch (Exception e) {
+                    // Clave inválida → ignorar
+                    continue;
+                }
+                var slot = equippedInventory.get(id);
+                if(slot == null) {
+                    // Slot no existe → ignorar
+                    continue;
+                }
+                try {
+                    slot.setCosmeticData(new PlayerCosmeticData(ClientCosmeticStore.INSTANCE, entry.getValue().getAsJsonObject()));
+                    slot.clearCache();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    slot.clear();
+                    slot.cacheSlotData(entry.getValue().getAsJsonObject());
+                }
             }
         }
     }
 
-    public EquipmentSlot[] getEquippedInventory() {
+    public Map<Identifier, ClientCosmeticSlot> getEquippedInventory() {
         return equippedInventory;
     }
 }

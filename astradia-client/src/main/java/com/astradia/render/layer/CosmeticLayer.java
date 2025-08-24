@@ -1,7 +1,9 @@
 package com.astradia.render.layer;
 
 import com.astradia.AstradiaClient;
-import com.astradia.player.EquipmentSlot;
+import com.astradia.impl.ModelType;
+import com.astradia.player.ClientCosmeticSlot;
+import com.astradia.pojo.ClientCosmeticInfo;
 import com.astradia.utils.AstradiaPlayerEntityRenderState;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
@@ -32,22 +34,30 @@ public class CosmeticLayer extends FeatureRenderer<PlayerEntityRenderState, Play
         float partialTick = ((AstradiaPlayerEntityRenderState) state).getPartialTick();
         var cosmetics = AstradiaClient.getPlayerManager().getFromUuid(uuid).getCosmetics();
         var equipment = cosmetics.getEquippedInventory();
-        for (EquipmentSlot slot : equipment) {
-            if(slot.getCachedCosmetic() == null) continue;
-            renderCosmetic(slot, matrices, vertexConsumers, light, state, limbAngle, limbDistance, partialTick);
-
+        for (ClientCosmeticSlot slot : equipment.values()) {
+            var cosmeticData = slot.getCosmeticData();
+            if(cosmeticData == null) continue;
+            cosmeticData.getCosmetic().getProperty(ModelType.class).ifPresent(modelType -> renderCosmetic(slot, modelType, matrices, vertexConsumers, light, state, limbAngle, limbDistance, partialTick));
         }
     }
 
-    private void renderCosmetic(EquipmentSlot slot, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, PlayerEntityRenderState state, float limbAngle, float limbDistance, float partialTick) {
-        var cosmetic = slot.getCachedCosmetic();
+    private void renderCosmetic(ClientCosmeticSlot slot, ModelType modelType, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, PlayerEntityRenderState state, float limbAngle, float limbDistance, float partialTick) {
+        var cosmeticData = slot.getCosmeticData();
+        var cosmetic = (ClientCosmeticInfo) cosmeticData.getCosmetic();
         var renderer = cosmetic.getRenderer();
-        var model = renderer.getGeoModel().getBakedModel(renderer.getGeoModel().getModelResource(renderer.getAnimatable(), renderer));
-        int color = Colors.WHITE;
-        if(cosmetic.isColorable()) {
-            color = slot.getStoredData().getInt("color");
-            if(color == 0) color = -1;
+        try {
+            var model = renderer.getGeoModel().getBakedModel(renderer.getGeoModel().getModelResource(renderer.getAnimatable(), renderer));
+            int color = Colors.WHITE;
+            /*if(cosmetic.isColorable()) {
+                color = slot.getStoredData().getInt("color");
+                if(color == 0) color = -1;
+            }*/
+            renderer.actuallyRenderCosmetic(this.renderer, matrices, renderer.getAnimatable(), model, RenderLayer.getEntityTranslucent(modelType.getTexturePath()), vertexConsumers, vertexConsumers.getBuffer(RenderLayer.getEntityTranslucent(modelType.getTexturePath())), false, partialTick, light, OverlayTexture.DEFAULT_UV, color);
+
+        } catch (Exception e) {
+            if(e instanceof RuntimeException runtimeException) {
+                AstradiaClient.LOGGER.error(runtimeException.getMessage());
+            }
         }
-        renderer.actuallyRenderCosmetic(this.renderer, matrices, renderer.getAnimatable(), model, RenderLayer.getEntityTranslucent(cosmetic.getTexturePath()), vertexConsumers, vertexConsumers.getBuffer(RenderLayer.getEntityTranslucent(cosmetic.getTexturePath())), false, partialTick, light, OverlayTexture.DEFAULT_UV, color);
     }
 }

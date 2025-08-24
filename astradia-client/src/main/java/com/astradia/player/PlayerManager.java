@@ -1,21 +1,18 @@
 package com.astradia.player;
 
 import com.astradia.AstradiaClient;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public class PlayerManager {
     protected final HashMap<UUID, PlayerData> players;
 
-    private static final PlayerData defaulted = new PlayerData(null);
+    private static final PlayerData defaulted = new PlayerData(UUID.randomUUID()); // eto ta mal
 
     public PlayerManager() {
         players = new HashMap<>();
@@ -44,17 +41,8 @@ public class PlayerManager {
     }
 
     public void receiveServerPlayerData(JsonObject json) {
-        /*
-        UUID uuid = tag.getUuid("uuid");
-        NbtCompound featuresTag = tag.getCompound("features");
-        PlayerData playerData = new PlayerData(uuid);
-        playerData.fromNbt(featuresTag);
-        players.put(uuid, playerData);*/
-        System.out.println("PlayerData: ");
-        for (Map.Entry<String, JsonElement> stringJsonElementEntry : json.entrySet()) {
-            System.out.println(stringJsonElementEntry.getKey() + " / " + stringJsonElementEntry.getValue().toString());
-        }
-        System.out.println("cipote");
+        PlayerData playerData = new PlayerData(json);
+        players.put(playerData.getUuid(), playerData);
     }
 
     public PlayerData getFromUuid(UUID uuid) {

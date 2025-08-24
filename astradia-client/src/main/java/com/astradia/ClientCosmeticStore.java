@@ -1,17 +1,14 @@
 package com.astradia;
 
-import com.astradia.api.CosmeticInfo;
-import com.astradia.pojo.ClientCosmetic;
+import com.astradia.pojo.ClientCosmeticInfo;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
 
 import java.util.Map;
 
-public class ClientCosmeticStore extends CosmeticStore<CosmeticInfo> {
+public class ClientCosmeticStore extends CosmeticStore<ClientCosmeticInfo> {
     public static final ClientCosmeticStore INSTANCE = new ClientCosmeticStore();
     private boolean isReady;
 
@@ -21,10 +18,18 @@ public class ClientCosmeticStore extends CosmeticStore<CosmeticInfo> {
     public void receiveServerStore(JsonObject json) {
         cosmetics.clear();
         System.out.println("Client Cosmetics: ");
-        for (Map.Entry<String, JsonElement> stringJsonElementEntry : json.entrySet()) {
-            System.out.println(stringJsonElementEntry.getKey() + " / " + stringJsonElementEntry.getValue().toString());
+        if(json.has("cosmetics") && json.get("cosmetics").isJsonArray()) {
+            JsonArray cosmeticsJson = json.getAsJsonArray("cosmetics");
+            for (JsonElement jsonElement : cosmeticsJson) {
+                JsonObject jsonObject = jsonElement.getAsJsonObject();
+                try {
+                    cosmetics.put(jsonObject.get("id").getAsInt(), new ClientCosmeticInfo(jsonObject));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
-        isReady = false;
+        isReady = true;
     }
 
     public boolean isReady() {

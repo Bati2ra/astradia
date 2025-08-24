@@ -1,7 +1,6 @@
 package com.astradia.player;
 
-import net.minecraft.nbt.NbtCompound;
-
+import com.google.gson.JsonObject;
 import java.util.UUID;
 
 public abstract class PlayerFeature {
@@ -13,7 +12,7 @@ public abstract class PlayerFeature {
         this.uuid = uuid;
     }
 
-    public abstract void deserialize(NbtCompound tag);
+    public abstract void fromJson(JsonObject json);
 
     public void onDisconnect() {};
 }

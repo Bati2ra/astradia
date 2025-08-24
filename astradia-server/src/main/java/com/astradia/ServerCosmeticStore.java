@@ -38,8 +38,7 @@ public class ServerCosmeticStore extends CosmeticStore<CosmeticInfo> {
                         InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)
                     ) {
                         JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
-                        CosmeticInfo cosmetic = CosmeticInfo.fromJson(json);
-                        cosmetic.getProperties().values().forEach(t -> t.validate(cosmetic));
+                        CosmeticInfo cosmetic = new CosmeticInfo(json);
                         cosmetics.put(cosmetic.getId(), cosmetic);
                         AstradiaServer.LOGGER.info("Registering cosmetic {}", cosmetic.getName());
                     } catch(Exception e) {

@@ -7,10 +7,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class CosmeticAnimatable implements GeoAnimatable {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final ClientCosmetic cosmetic;
+    private final ClientCosmeticInfo cosmetic;
     protected static final RawAnimation IDLE_ANIMATION = RawAnimation.begin().thenLoop("idle");
 
-    public CosmeticAnimatable(ClientCosmetic cosmetic) {
+    public CosmeticAnimatable(ClientCosmeticInfo cosmetic) {
         this.cosmetic = cosmetic;
     }
     @Override
@@ -19,8 +19,8 @@ public class CosmeticAnimatable implements GeoAnimatable {
     }
 
     protected <E extends GeoAnimatable> PlayState idleAnimController(final AnimationState<E> event) {
-            if(cosmetic.getAnimationPath() == null) return PlayState.STOP;
-
+            //if(cosmetic.getAnimationPath() == null) return PlayState.STOP;
+            if(true) return PlayState.STOP;
             return event.setAndContinue(IDLE_ANIMATION);
 
     }
