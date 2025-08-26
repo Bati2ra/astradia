@@ -1,7 +1,8 @@
 package com.astradia.render;
 
 import com.astradia.impl.AnimatableType;
-import com.astradia.impl.ModelType;
+import com.astradia.impl.ModelProperty;
+import com.astradia.impl.TextureProperty;
 import com.astradia.pojo.ClientCosmeticInfo;
 import com.astradia.pojo.CosmeticAnimatable;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -16,9 +17,11 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.cache.texture.AutoGlowingTexture;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoObjectRenderer;
 import software.bernie.geckolib.renderer.GeoRenderer;
+import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 import software.bernie.geckolib.util.RenderUtil;
 
 import java.util.Iterator;
@@ -31,6 +34,7 @@ public class CosmeticRenderer extends GeoObjectRenderer<CosmeticAnimatable> {
         super(new Model(cosmetic));
         this.cosmetic = cosmetic;
         this.animatable = animatable;
+        addRenderLayer(new AutoGlowingGeoLayer<>(this));
     }
 
     @Override
@@ -60,9 +64,8 @@ public class CosmeticRenderer extends GeoObjectRenderer<CosmeticAnimatable> {
 
     @Override
     public @Nullable RenderLayer getRenderType(CosmeticAnimatable animatable, Identifier texture, @Nullable VertexConsumerProvider bufferSource, float partialTick) {
-        return RenderLayer.getEntityCutout(texture);
+        return AutoGlowingTexture.getRenderType(texture);
     }
-
 
     public void actuallyRenderCosmetic(PlayerEntityRenderer playerEntityRenderer, MatrixStack poseStack, CosmeticAnimatable animatable, BakedGeoModel model, @Nullable RenderLayer renderType, VertexConsumerProvider bufferSource, @Nullable VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int renderColor) {
         poseStack.push();
@@ -124,14 +127,14 @@ public class CosmeticRenderer extends GeoObjectRenderer<CosmeticAnimatable> {
 
         @Override
         public Identifier getModelResource(CosmeticAnimatable cosmeticAnimatable, @Nullable GeoRenderer<CosmeticAnimatable> geoRenderer) {
-            var property = cosmetic.getProperty(ModelType.class);
-            return property.map(ModelType::getModelPath).orElse(null);
+            var property = cosmetic.getProperty(ModelProperty.class);
+            return property.map(ModelProperty::getPath).orElse(null);
         }
 
         @Override
         public Identifier getTextureResource(CosmeticAnimatable cosmeticAnimatable, @Nullable GeoRenderer<CosmeticAnimatable> geoRenderer) {
-            var property = cosmetic.getProperty(ModelType.class);
-            return property.map(ModelType::getTexturePath).orElse(null);
+            var property = cosmetic.getProperty(TextureProperty.class);
+            return property.map(TextureProperty::getPath).orElse(null);
         }
 
         @Override

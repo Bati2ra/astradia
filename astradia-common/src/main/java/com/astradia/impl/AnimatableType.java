@@ -4,6 +4,7 @@ import com.astradia.api.CosmeticProperty;
 import com.google.gson.JsonObject;
 import net.minecraft.util.Identifier;
 
+import java.util.List;
 import java.util.Set;
 
 public class AnimatableType extends CosmeticProperty<AnimatableType.PlayerData> {
@@ -32,7 +33,6 @@ public class AnimatableType extends CosmeticProperty<AnimatableType.PlayerData> 
     private final Identifier animationPath;
 
     public AnimatableType(Identifier animationPath) {
-        super();
         this.animationPath = animationPath;
     }
 
@@ -56,7 +56,9 @@ public class AnimatableType extends CosmeticProperty<AnimatableType.PlayerData> 
     }
 
     @Override
-    public Set<Class<? extends CosmeticProperty<?>>> requiredTypes() {
-        return Set.of(ModelType.class);
+    public List<Set<Class<? extends CosmeticProperty<?>>>> requiredProperties() {
+        return List.of(
+                Set.of(ModelProperty.class)
+        );
     }
 }

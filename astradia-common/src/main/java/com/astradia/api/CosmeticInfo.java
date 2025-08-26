@@ -95,7 +95,7 @@ public class CosmeticInfo {
         // Serializamos el map como array
         JsonArray typesArray = new JsonArray();
         for (CosmeticProperty<?> type : properties.values()) {
-            typesArray.add(GsonUtils.GSON.toJsonTree(type));
+            typesArray.add(GsonUtils.GSON.toJsonTree(type, CosmeticProperty.class));
         }
         json.add("properties", typesArray);
 
