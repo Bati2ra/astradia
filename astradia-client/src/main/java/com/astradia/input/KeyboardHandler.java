@@ -1,7 +1,6 @@
 package com.astradia.input;
 
 import com.astradia.screen.DebugOverlay;
-import com.astradia.screen.WardrobeScreen;
 import net.minecraft.client.MinecraftClient;
 import org.lwjgl.glfw.GLFW;
 
@@ -12,10 +11,6 @@ public class KeyboardHandler {
 
         if(i == 0 && key == GLFW.GLFW_KEY_KP_1) {
             DebugOverlay.nextMode();
-        }
-
-        if(i == 0 && key == GLFW.GLFW_KEY_V) {
-            MinecraftClient.getInstance().setScreen(new WardrobeScreen(null));
         }
     }
 

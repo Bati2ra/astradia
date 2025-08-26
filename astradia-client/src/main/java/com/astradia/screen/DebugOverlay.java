@@ -9,8 +9,7 @@ import com.astradia.utils.GsonUtils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.fabricmc.fabric.api.client.rendering.v1.HudLayerRegistrationCallback;
-import net.fabricmc.fabric.api.client.rendering.v1.IdentifiedLayer;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
@@ -24,7 +23,8 @@ public class DebugOverlay {
     private static DebugMode debug = DebugMode.OFF;
 
     public static void initialize() {
-        HudLayerRegistrationCallback.EVENT.register(layeredDrawer -> layeredDrawer.attachLayerBefore(IdentifiedLayer.CHAT, DEBUG_LAYER, DebugOverlay::render));
+        HudRenderCallback.EVENT.register(DebugOverlay::render);
+        //HudLayerRegistrationCallback.EVENT.register(layeredDrawer -> layeredDrawer.attachLayerBefore(IdentifiedLayer.CHAT, DEBUG_LAYER, DebugOverlay::render));
     }
 
     public static void nextMode() {
@@ -55,13 +55,13 @@ public class DebugOverlay {
         var equipment = playerData.getCosmetics();
         context.drawText(textRenderer, "  Player Cosmetics", 5, 5 + 9 * i++, 0xFFFFFFFF, true);
 
-        context.getMatrices().push();
-        context.getMatrices().scale(0.8f, 0.8f, 1);
+        context.getMatrices().pushMatrix();
+        context.getMatrices().scale(0.8f, 0.8f);
         for (Map.Entry<Identifier, ClientCosmeticSlot> entry : equipment.getEquippedInventory().entrySet()) {
             var cosmeticData = entry.getValue().getCosmeticData();
             context.drawText(textRenderer, String.format("Slot '%s': %s", entry.getKey(), cosmeticData == null ? "Empty" : cosmeticData.toJson().toString()), 7, 16 + 9 * i++, 0xFFFFFFFF, true);
         }
-        context.getMatrices().pop();
+        context.getMatrices().popMatrix();
     }
 
     private static int scrollOffset = 0;

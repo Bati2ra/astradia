@@ -1,7 +1,7 @@
 import java.text.SimpleDateFormat
 plugins {
     id 'java'
-    id 'fabric-loom' version '1.10-SNAPSHOT'
+    id 'fabric-loom' version '1.11-SNAPSHOT'
 }
 
 version = "1.0.0"

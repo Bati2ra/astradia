@@ -5,7 +5,7 @@ import com.astradia.impl.ModelProperty;
 import com.astradia.impl.TextureProperty;
 import com.astradia.pojo.ClientCosmeticInfo;
 import com.astradia.pojo.CosmeticAnimatable;
-import com.mojang.blaze3d.systems.RenderSystem;
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -13,15 +13,15 @@ import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
-import software.bernie.geckolib.cache.texture.AutoGlowingTexture;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoObjectRenderer;
-import software.bernie.geckolib.renderer.GeoRenderer;
-import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
+import software.bernie.geckolib.renderer.base.GeoRenderState;
+import software.bernie.geckolib.renderer.base.PerBoneRender;
 import software.bernie.geckolib.util.RenderUtil;
 
 import java.util.Iterator;
@@ -34,7 +34,12 @@ public class CosmeticRenderer extends GeoObjectRenderer<CosmeticAnimatable> {
         super(new Model(cosmetic));
         this.cosmetic = cosmetic;
         this.animatable = animatable;
-        addRenderLayer(new AutoGlowingGeoLayer<>(this));
+       // addRenderLayer(new GlowingGeoLayer<>(this));
+    }
+
+    @Override
+    public void addRenderData(CosmeticAnimatable animatable, Void relatedObject, GeoRenderState renderState) {
+
     }
 
     @Override
@@ -42,7 +47,6 @@ public class CosmeticRenderer extends GeoObjectRenderer<CosmeticAnimatable> {
         return model;
     }
 
-    @Override
     public CosmeticAnimatable getAnimatable() {
         return animatable;
     }
@@ -52,69 +56,87 @@ public class CosmeticRenderer extends GeoObjectRenderer<CosmeticAnimatable> {
 
     }
 
-    @Override
-    public boolean firePreRenderEvent(MatrixStack poseStack, BakedGeoModel model, VertexConsumerProvider bufferSource, float partialTick, int packedLight) {
-        return false;
-    }
-
-    @Override
-    public void firePostRenderEvent(MatrixStack poseStack, BakedGeoModel model, VertexConsumerProvider bufferSource, float partialTick, int packedLight) {
-
-    }
-
-    @Override
-    public @Nullable RenderLayer getRenderType(CosmeticAnimatable animatable, Identifier texture, @Nullable VertexConsumerProvider bufferSource, float partialTick) {
-        return AutoGlowingTexture.getRenderType(texture);
-    }
-
-    public void actuallyRenderCosmetic(PlayerEntityRenderer playerEntityRenderer, MatrixStack poseStack, CosmeticAnimatable animatable, BakedGeoModel model, @Nullable RenderLayer renderType, VertexConsumerProvider bufferSource, @Nullable VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int renderColor) {
+    public void actuallyRenderCosmetic(GeoRenderState renderState, PlayerEntityRenderer playerEntityRenderer, MatrixStack poseStack, CosmeticAnimatable animatable, BakedGeoModel model, @Nullable RenderLayer renderType, VertexConsumerProvider bufferSource, @Nullable VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int renderColor) {
         poseStack.push();
         poseStack.translate(0.0F, 1.5F, 0.0F);
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         if (!isReRender) {
-            long instanceId = this.getInstanceId(animatable);
-            this.getGeoModel().handleAnimations(animatable, instanceId, this.createAnimationState(animatable, instanceId, 0.0F, 0.0F, partialTick, false), partialTick);
+            this.getGeoModel().handleAnimations(this.createAnimationState(renderState));
         }
 
         this.modelRenderTranslations = new Matrix4f(poseStack.peek().getPositionMatrix());
         if (buffer != null) {
 
-            RenderSystem.setShaderTexture(0, this.getTextureLocation(animatable));
+            //RenderSystem.setShaderTexture(0, this.getTextureLocation(renderState));
             Iterator var12 = model.topLevelBones().iterator();
 
             while(var12.hasNext()) {
                 GeoBone group = (GeoBone)var12.next();
                 copyRotationsDynamically(group, playerEntityRenderer.getModel());
-                this.renderRecursively(poseStack, animatable, group, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, renderColor);
+                this.renderRecursively(renderState, poseStack, group, renderType, bufferSource, buffer, isReRender, packedLight, packedOverlay, renderColor);
             }}
 
         poseStack.pop();
 
     }
+
+    public void renderRecursively(GeoRenderState renderState, MatrixStack poseStack, GeoBone bone, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, int packedLight, int packedOverlay, int renderColor) {
+        if (bone.isTrackingMatrices()) {
+            Matrix4f poseState = new Matrix4f(poseStack.peek().getPositionMatrix());
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.objectRenderTranslations));
+        }
+
+        poseStack.push();
+        RenderUtil.prepMatrixForBone(poseStack, bone);
+        if (!isReRender) {
+            Pair<MutableObject<MatrixStack.Entry>, PerBoneRender<GeoRenderState>> boneRenderTask = (Pair)this.getPerBoneTasks(renderState).get(bone);
+            if (boneRenderTask != null) {
+                ((MutableObject)boneRenderTask.left()).setValue(poseStack.peek().copy());
+            }
+        }
+
+        this.renderCubesOfBone(renderState, bone, poseStack, buffer, packedLight, packedOverlay, renderColor);
+        this.renderChildBones(renderState, bone, poseStack, renderType, bufferSource, buffer, isReRender, packedLight, packedOverlay, renderColor);
+        poseStack.pop();
+    }
+
+    public void renderChildBones(GeoRenderState renderState, GeoBone bone, MatrixStack poseStack, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, int packedLight, int packedColor, int renderColor) {
+        if (!bone.isHidingChildren()) {
+            Iterator var11 = bone.getChildBones().iterator();
+
+            while(var11.hasNext()) {
+                GeoBone childBone = (GeoBone)var11.next();
+                this.renderRecursively(renderState, poseStack, childBone, renderType, bufferSource, bufferSource.getBuffer(renderType), isReRender, packedLight, packedColor, renderColor);
+            }
+
+        }
+    }
+
     private void copyRotationsDynamically(GeoBone bone, PlayerEntityModel model) {
         if(bone.getName().contentEquals("bipedHead")) {
             RenderUtil.matchModelPartRot(model.head, bone);
-            bone.updatePosition(model.head.pivotX, -model.head.pivotY, model.head.pivotZ);
+            bone.updatePosition(model.head.originX, -model.head.originY, model.head.originZ);
         }
         if(bone.getName().contentEquals("bipedBody")) {
             RenderUtil.matchModelPartRot(model.body, bone);
-            bone.updatePosition(model.body.pivotX, -model.body.pivotY, model.body.pivotZ);
+            bone.updatePosition(model.body.originX, -model.body.originY, model.body.originZ);
         }
         if(bone.getName().contentEquals("bipedRightArm")) {
             RenderUtil.matchModelPartRot(model.rightArm, bone);
-            bone.updatePosition(model.rightArm.pivotX + 5.0F, 2.0F - model.rightArm.pivotY, model.rightArm.pivotZ);
+            bone.updatePosition(model.rightArm.originX + 5.0F, 2.0F - model.rightArm.originY, model.rightArm.originZ);
         }
         if(bone.getName().contentEquals("bipedLeftArm")) {
             RenderUtil.matchModelPartRot(model.leftArm, bone);
-            bone.updatePosition(model.leftArm.pivotX - 5.0F, 2.0F - model.leftArm.pivotY, model.leftArm.pivotZ);
+            bone.updatePosition(model.leftArm.originX - 5.0F, 2.0F - model.leftArm.originY, model.leftArm.originZ);
         }
         if(bone.getName().contentEquals("bipedRightLeg")) {
             RenderUtil.matchModelPartRot(model.rightLeg, bone);
-            bone.updatePosition(model.rightLeg.pivotX + 2.0F, 12.0F - model.rightLeg.pivotY, model.rightLeg.pivotZ);
+            bone.updatePosition(model.rightLeg.originX + 2.0F, 12.0F - model.rightLeg.originY, model.rightLeg.originZ);
         }
         if(bone.getName().contentEquals("bipedLeftLeg")) {
             RenderUtil.matchModelPartRot(model.leftLeg, bone);
-            bone.updatePosition(model.leftLeg.pivotX - 2.0F, 12.0F - model.leftLeg.pivotY, model.leftLeg.pivotZ);
+            bone.updatePosition(model.leftLeg.originX - 2.0F, 12.0F - model.leftLeg.originY, model.leftLeg.originZ);
         }
     }
 
@@ -124,15 +146,14 @@ public class CosmeticRenderer extends GeoObjectRenderer<CosmeticAnimatable> {
             this.cosmetic = cosmetic;
         }
 
-
         @Override
-        public Identifier getModelResource(CosmeticAnimatable cosmeticAnimatable, @Nullable GeoRenderer<CosmeticAnimatable> geoRenderer) {
+        public Identifier getModelResource(GeoRenderState geoRenderState) {
             var property = cosmetic.getProperty(ModelProperty.class);
             return property.map(ModelProperty::getPath).orElse(null);
         }
 
         @Override
-        public Identifier getTextureResource(CosmeticAnimatable cosmeticAnimatable, @Nullable GeoRenderer<CosmeticAnimatable> geoRenderer) {
+        public Identifier getTextureResource(GeoRenderState geoRenderState) {
             var property = cosmetic.getProperty(TextureProperty.class);
             return property.map(TextureProperty::getPath).orElse(null);
         }

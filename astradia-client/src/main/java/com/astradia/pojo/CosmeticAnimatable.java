@@ -2,6 +2,10 @@ package com.astradia.pojo;
 
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animatable.processing.AnimationController;
+import software.bernie.geckolib.animatable.processing.AnimationState;
+import software.bernie.geckolib.animatable.processing.AnimationTest;
 import software.bernie.geckolib.animation.*;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
@@ -13,16 +17,16 @@ public class CosmeticAnimatable implements GeoAnimatable {
     public CosmeticAnimatable(ClientCosmeticInfo cosmetic) {
         this.cosmetic = cosmetic;
     }
+
     @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
-        controllerRegistrar.add(new AnimationController<GeoAnimatable>(this, "base", 0, this::idleAnimController));
+    public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>("base", 0, this::flyAnimController));
     }
 
-    protected <E extends GeoAnimatable> PlayState idleAnimController(final AnimationState<E> event) {
-            //if(cosmetic.getAnimationPath() == null) return PlayState.STOP;
-            if(true) return PlayState.STOP;
-            return event.setAndContinue(IDLE_ANIMATION);
+    protected <E extends GeoAnimatable> PlayState flyAnimController(final AnimationTest<E> animTest) {
+        if(true) return PlayState.STOP;
 
+        return PlayState.STOP;
     }
 
     @Override

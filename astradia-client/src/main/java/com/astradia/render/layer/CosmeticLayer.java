@@ -18,7 +18,8 @@ import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Identifier;
-import software.bernie.geckolib.cache.texture.AutoGlowingTexture;
+import software.bernie.geckolib.constant.DataTickets;
+import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 import java.util.UUID;
 
@@ -45,12 +46,15 @@ public class CosmeticLayer extends FeatureRenderer<PlayerEntityRenderState, Play
         }
     }
 
+
     private void renderCosmetic(ClientCosmeticSlot slot, ModelProperty modelProperty, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, PlayerEntityRenderState state, float limbAngle, float limbDistance, float partialTick) {
         var cosmeticData = slot.getCosmeticData();
         var cosmetic = (ClientCosmeticInfo) cosmeticData.getCosmetic();
         var renderer = cosmetic.getRenderer();
+
         try {
-            var model = renderer.getGeoModel().getBakedModel(renderer.getGeoModel().getModelResource(renderer.getAnimatable(), renderer));
+            var model = renderer.getGeoModel().getBakedModel(renderer.getGeoModel().getModelResource(null));
+
             int color = Colors.WHITE;
             /*if(cosmetic.isColorable()) {
                 color = slot.getStoredData().getInt("color");
@@ -64,10 +68,10 @@ public class CosmeticLayer extends FeatureRenderer<PlayerEntityRenderState, Play
 
                 }
             }
-            RenderLayer layer =renderer.getRenderType(renderer.getAnimatable(), texture, vertexConsumers, partialTick);
-
-            renderer.actuallyRender(matrices, renderer.getAnimatable(), model, layer, vertexConsumers, vertexConsumers.getBuffer(layer), false, partialTick, light, OverlayTexture.DEFAULT_UV, color);
-            //renderer.actuallyRenderCosmetic(this.renderer, matrices, renderer.getAnimatable(), model, layer, vertexConsumers, vertexConsumers.getBuffer(layer), false, partialTick, 15728640, OverlayTexture.DEFAULT_UV, color);
+            RenderLayer layer = RenderLayer.getEntityCutout(texture);
+            GeoRenderState renderState = renderer.fillRenderState(renderer.getAnimatable(), null, new GeoRenderState.Impl(), partialTick);
+            renderState.addGeckolibData(DataTickets.PACKED_LIGHT, light);
+            renderer.actuallyRenderCosmetic(renderState, this.renderer, matrices, renderer.getAnimatable(), model, layer, vertexConsumers, vertexConsumers.getBuffer(layer), false, partialTick, 15728640, OverlayTexture.DEFAULT_UV, color);
 
         } catch (Exception e) {
             if(e instanceof RuntimeException runtimeException) {

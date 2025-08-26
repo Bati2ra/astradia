@@ -2,7 +2,7 @@ import java.text.SimpleDateFormat
 
 plugins {
     id 'java'
-    id 'fabric-loom' version '1.10-SNAPSHOT'
+    id 'fabric-loom' version '1.11-SNAPSHOT'
     id "org.jetbrains.kotlin.jvm" version "2.1.0"
 }
 
@@ -34,7 +34,6 @@ dependencies {
     include(modImplementation("software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"))
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
-    include(modImplementation(files("libs/Bati-GLib-0.1.0.jar")))
 }
 
 loom {
