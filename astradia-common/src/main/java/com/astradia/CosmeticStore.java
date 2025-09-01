@@ -17,7 +17,7 @@ public class CosmeticStore<T extends CosmeticDefinition> {
         return cosmetics.get(id);
     }
 
-    public boolean isValid(Integer id) {
+    public boolean isValid(Identifier id) {
         return cosmetics.containsKey(id);
     }
 

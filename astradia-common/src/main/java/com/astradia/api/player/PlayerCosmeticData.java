@@ -121,6 +121,10 @@ public class PlayerCosmeticData {
         return cosmeticDefinition;
     }
 
+    public CosmeticVariant getCosmeticVariant() {
+        return cosmeticVariant;
+    }
+
     /**
      * Obtiene los datos de jugador para un tipo específico de propiedad.
      *

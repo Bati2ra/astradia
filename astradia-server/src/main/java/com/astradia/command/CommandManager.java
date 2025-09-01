@@ -50,7 +50,7 @@ public class CommandManager {
                             .suggests(COSMETIC_SUGGESTIONS)
                             .executes(context -> {
                                 final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                                final Integer value = IntegerArgumentType.getInteger(context, "id");
+                                final Identifier value = IdentifierArgumentType.getIdentifier(context, "id");
                                 try {
                                     var result = AstradiaServer.getPlayerManager().getFromPlayer(player).getCosmetics().unlock(value);
                                     context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);
@@ -64,7 +64,7 @@ public class CommandManager {
     public static final LiteralArgumentBuilder<ServerCommandSource> EQUIP_COMMAND = literal("equip")
             .then(argument("player", EntityArgumentType.player())
                         .then(argument("slot", StringArgumentType.string())
-                                .then(argument("id", IntegerArgumentType.integer())
+                                .then(argument("id", IdentifierArgumentType.identifier())
                                        .executes(context -> equipCosmetic(context, false))
                                         .then(argument("nbt", NbtCompoundArgumentType.nbtCompound())
                                                 .executes(context -> equipCosmetic(context, true))

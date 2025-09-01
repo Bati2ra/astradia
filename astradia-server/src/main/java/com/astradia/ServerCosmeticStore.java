@@ -40,7 +40,7 @@ public class ServerCosmeticStore extends CosmeticStore<CosmeticDefinition> {
                         JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
                         CosmeticDefinition cosmetic = new CosmeticDefinition(json);
                         cosmetics.put(cosmetic.getId(), cosmetic);
-                        AstradiaServer.LOGGER.info("Registering cosmetic {}", cosmetic.getName());
+                        AstradiaServer.LOGGER.info("Registering cosmetic {}", cosmetic.getDisplayName());
                     } catch(Exception e) {
                         AstradiaServer.LOGGER.error("Error occurred while loading resource json {}", resourceEntry.getKey().toString(), e);
                     }

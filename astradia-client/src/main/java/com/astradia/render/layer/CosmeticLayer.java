@@ -42,7 +42,7 @@ public class CosmeticLayer extends FeatureRenderer<PlayerEntityRenderState, Play
         for (ClientCosmeticSlot slot : equipment.values()) {
             var cosmeticData = slot.getCosmeticData();
             if(cosmeticData == null) continue;
-            cosmeticData.getCosmetic().getProperty(ModelProperty.class).ifPresent(modelType -> renderCosmetic(slot, modelType, matrices, vertexConsumers, light, state, limbAngle, limbDistance, partialTick));
+            cosmeticData.getCosmeticVariant().getProperty(ModelProperty.class).ifPresent(modelType -> renderCosmetic(slot, modelType, matrices, vertexConsumers, light, state, limbAngle, limbDistance, partialTick));
         }
     }
 
@@ -53,15 +53,15 @@ public class CosmeticLayer extends FeatureRenderer<PlayerEntityRenderState, Play
         var renderer = cosmetic.getRenderer();
 
         try {
-            var model = renderer.getGeoModel().getBakedModel(renderer.getGeoModel().getModelResource(null));
+            var model = renderer.getGeoModel().getBakedModel(modelProperty.getPath());
 
             int color = Colors.WHITE;
             /*if(cosmetic.isColorable()) {
                 color = slot.getStoredData().getInt("color");
                 if(color == 0) color = -1;
             }*/
-            Identifier texture = cosmetic.getProperty(TextureProperty.class).get().getPath();
-            var animatedTextureProperty = cosmetic.getProperty(AnimatedTextureProperty.class);
+            Identifier texture = cosmeticData.getCosmeticVariant().getProperty(TextureProperty.class).get().getPath();
+            var animatedTextureProperty = cosmeticData.getCosmeticVariant().getProperty(AnimatedTextureProperty.class);
             if(animatedTextureProperty.isPresent()) {
                 var animations = animatedTextureProperty.get().getAnimations();
                 if(animations.containsKey(texture)) {

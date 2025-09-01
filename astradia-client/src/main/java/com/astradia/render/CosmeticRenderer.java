@@ -148,19 +148,19 @@ public class CosmeticRenderer extends GeoObjectRenderer<CosmeticAnimatable> {
 
         @Override
         public Identifier getModelResource(GeoRenderState geoRenderState) {
-            var property = cosmetic.getProperty(ModelProperty.class);
+            var property = cosmetic.getVariant("default").getProperty(ModelProperty.class);
             return property.map(ModelProperty::getPath).orElse(null);
         }
 
         @Override
         public Identifier getTextureResource(GeoRenderState geoRenderState) {
-            var property = cosmetic.getProperty(TextureProperty.class);
+            var property = cosmetic.getVariant("default").getProperty(TextureProperty.class);
             return property.map(TextureProperty::getPath).orElse(null);
         }
 
         @Override
         public Identifier getAnimationResource(CosmeticAnimatable cosmeticAnimatable) {
-            var property = cosmetic.getProperty(AnimatableType.class);
+            var property = cosmetic.getVariant("default").getProperty(AnimatableType.class);
             return property.map(AnimatableType::getAnimationPath).orElse(null);
         }
     }

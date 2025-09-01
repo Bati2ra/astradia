@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class PlayerCosmetics extends PlayerFeature {
-    protected final HashSet<Integer> unlockedCosmetics = new HashSet<>();
+    protected final HashSet<Identifier> unlockedCosmetics = new HashSet<>();
 
     protected final Map<Identifier, CosmeticSlot> equippedInventory = SlotUtils.getPlayerEquipmentSlots();
 
@@ -50,13 +50,13 @@ public class PlayerCosmetics extends PlayerFeature {
         return CosmeticResponse.of(ResponseType.SUCCESS);
     }
 
-    public boolean isUnlocked(Integer id) {
+    public boolean isUnlocked(Identifier id) {
         return unlockedCosmetics.contains(id);
     }
 
     public String showUnlockedCosmetics() {
         StringBuilder builder = new StringBuilder();
-        for (Integer unlockedCosmetic : unlockedCosmetics) {
+        for (Identifier unlockedCosmetic : unlockedCosmetics) {
             builder.append(String.format("%s\n", unlockedCosmetic));
         }
         return builder.toString();
@@ -70,7 +70,7 @@ public class PlayerCosmetics extends PlayerFeature {
         return CosmeticResponse.of(ResponseType.SUCCESS);
     }
 
-    public CosmeticResponse unlock(Integer id) {
+    public CosmeticResponse unlock(Identifier id) {
         if(!ServerCosmeticStore.INSTANCE.isValid(id)) {
             return CosmeticResponse.of(ResponseType.ERROR, "El 'ID' ingresado no corresponde a ningún cosmético.");
         }
@@ -83,7 +83,7 @@ public class PlayerCosmetics extends PlayerFeature {
         StringBuilder builder = new StringBuilder();
         for (CosmeticSlot value : equippedInventory.values()) {
             builder.append(String.format("Slot - %s - %s", value.getName().toString(), value.getCategory()));
-            builder.append(String.format("  - %s", value.getCosmeticData() != null ? value.getCosmeticData().getCosmetic().getName() : "Vacío"));
+            builder.append(String.format("  - %s", value.getCosmeticData() != null ? value.getCosmeticData().getCosmetic().getDisplayName() : "Vacío"));
         }
         return builder.toString();
     }
@@ -93,8 +93,8 @@ public class PlayerCosmetics extends PlayerFeature {
         JsonObject jsonObject = new JsonObject();
         JsonObject jsonEquipped = new JsonObject();
         JsonArray jsonArray = new JsonArray();
-        for (Integer unlockedCosmetic : unlockedCosmetics) {
-            jsonArray.add(unlockedCosmetic);
+        for (Identifier unlockedCosmetic : unlockedCosmetics) {
+            jsonArray.add(unlockedCosmetic.toString());
         }
         jsonObject.add("unlocked", jsonArray);
 
@@ -115,7 +115,7 @@ public class PlayerCosmetics extends PlayerFeature {
         if(json.has("unlocked") && json.get("unlocked").isJsonArray()) {
             JsonArray unlockedArray = json.getAsJsonArray("unlocked");
             for (JsonElement unlocked : unlockedArray) {
-                unlockedCosmetics.add(unlocked.getAsInt());
+                unlockedCosmetics.add(Identifier.of(unlocked.getAsString()));
             }
         }
         JsonObject jsonEquipped = json.has("equipped") ? json.get("equipped").getAsJsonObject() : null;
