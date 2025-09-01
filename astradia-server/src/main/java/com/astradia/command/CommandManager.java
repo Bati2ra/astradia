@@ -16,6 +16,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.command.argument.NbtCompoundArgumentType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.command.ServerCommandSource;
@@ -45,7 +46,7 @@ public class CommandManager {
                         context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);
                         return 1;
                     })
-                    .then(argument("id", IntegerArgumentType.integer())
+                    .then(argument("id", IdentifierArgumentType.identifier())
                             .suggests(COSMETIC_SUGGESTIONS)
                             .executes(context -> {
                                 final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
@@ -134,7 +135,7 @@ public class CommandManager {
         final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
 
         Identifier slot = Identifier.of(StringArgumentType.getString(context, "slot"));
-        final Integer value = IntegerArgumentType.getInteger(context, "id");
+        final Identifier value = IdentifierArgumentType.getIdentifier(context, "id");
         final NbtCompound nbt = hasNbt ?  NbtCompoundArgumentType.getNbtCompound(context, "nbt") : null;
 
         var cosmetic = ServerCosmeticStore.INSTANCE.get(value);
@@ -193,7 +194,7 @@ public class CommandManager {
                 slotType = bodyPart.getSlots()[slotTypeIndex];
             } catch (Exception ignored) {}
         }
-        for (Map.Entry<Integer, CosmeticDefinition> entry : ServerCosmeticStore.INSTANCE.getAll().entrySet()) {
+        for (Map.Entry<Identifier, CosmeticDefinition> entry : ServerCosmeticStore.INSTANCE.getAll().entrySet()) {
             if(bodyPart != null) {
                 //if(!entry.getValue().getBodyPart().equals(bodyPart)) continue;
             }

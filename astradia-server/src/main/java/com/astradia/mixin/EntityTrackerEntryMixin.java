@@ -1,7 +1,6 @@
 package com.astradia.mixin;
 
 import com.astradia.AstradiaServer;
-import com.astradia.player.PlayerData;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.EntityTrackerEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
