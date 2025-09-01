@@ -17,12 +17,14 @@ public class ClientCosmeticStore extends CosmeticStore<ClientCosmeticDefinition>
     public void receiveServerStore(JsonObject json) {
         cosmetics.clear();
         System.out.println("Client Cosmetics: ");
+        System.out.print(json.toString());
         if(json.has("cosmetics") && json.get("cosmetics").isJsonArray()) {
             JsonArray cosmeticsJson = json.getAsJsonArray("cosmetics");
             for (JsonElement jsonElement : cosmeticsJson) {
                 JsonObject jsonObject = jsonElement.getAsJsonObject();
                 try {
-                    cosmetics.put(Identifier.of(jsonObject.get("id").getAsString()), new ClientCosmeticDefinition(jsonObject));
+                    Identifier id = Identifier.of(jsonObject.get("id").getAsString());
+                    cosmetics.put(id, new ClientCosmeticDefinition(jsonObject));
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }

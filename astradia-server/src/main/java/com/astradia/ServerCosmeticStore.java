@@ -32,6 +32,7 @@ public class ServerCosmeticStore extends CosmeticStore<CosmeticDefinition> {
 
             @Override
             public void reload(ResourceManager manager) {
+                AstradiaServer.LOGGER.info("[Cosmetics] Starting loading phase");
                 cosmetics.clear();
                 for(Map.Entry<Identifier, Resource> resourceEntry : manager.findResources("cosmetics", path -> path.toString().endsWith(".json")).entrySet()) {
                     try(InputStream stream = resourceEntry.getValue().getInputStream();
@@ -40,12 +41,13 @@ public class ServerCosmeticStore extends CosmeticStore<CosmeticDefinition> {
                         JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
                         CosmeticDefinition cosmetic = new CosmeticDefinition(json);
                         cosmetics.put(cosmetic.getId(), cosmetic);
-                        AstradiaServer.LOGGER.info("Registering cosmetic {}", cosmetic.getDisplayName());
+                        AstradiaServer.LOGGER.info("[Cosmetics] Registering cosmetic {}", cosmetic.getDisplayName());
                     } catch(Exception e) {
-                        AstradiaServer.LOGGER.error("Error occurred while loading resource json {}", resourceEntry.getKey().toString(), e);
+                        AstradiaServer.LOGGER.error("[Cosmetics] Error occurred while loading resource json {}", resourceEntry.getKey().toString());
                     }
                 }
                 cachedSerializedCosmetics = getSerializedCosmetics();
+                AstradiaServer.LOGGER.info("[Cosmetics] Ended loading phase. {} cosmetics were successfully loaded", cosmetics.size());
             }
         });
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayer, joined) -> sendToPlayer(serverPlayer));

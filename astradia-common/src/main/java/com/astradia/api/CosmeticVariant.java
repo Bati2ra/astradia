@@ -61,6 +61,8 @@ public class CosmeticVariant {
 
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
+        json.addProperty("id", id);
+        json.addProperty("displayName", displayName);
         // Serializamos el map como array
         JsonArray typesArray = new JsonArray();
         for (CosmeticProperty<?> type : properties.values()) {
