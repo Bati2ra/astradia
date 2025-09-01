@@ -5,7 +5,7 @@ import com.astradia.impl.AnimatedTextureProperty;
 import com.astradia.impl.ModelProperty;
 import com.astradia.impl.TextureProperty;
 import com.astradia.player.ClientCosmeticSlot;
-import com.astradia.pojo.ClientCosmeticInfo;
+import com.astradia.pojo.ClientCosmeticDefinition;
 import com.astradia.utils.AstradiaPlayerEntityRenderState;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
@@ -49,7 +49,7 @@ public class CosmeticLayer extends FeatureRenderer<PlayerEntityRenderState, Play
 
     private void renderCosmetic(ClientCosmeticSlot slot, ModelProperty modelProperty, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, PlayerEntityRenderState state, float limbAngle, float limbDistance, float partialTick) {
         var cosmeticData = slot.getCosmeticData();
-        var cosmetic = (ClientCosmeticInfo) cosmeticData.getCosmetic();
+        var cosmetic = (ClientCosmeticDefinition) cosmeticData.getCosmetic();
         var renderer = cosmetic.getRenderer();
 
         try {

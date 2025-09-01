@@ -13,13 +13,8 @@ import java.io.IOException;
 public class GsonUtils {
     public static Gson GSON = new GsonBuilder()
             .registerTypeAdapter(Identifier.class, new TypeAdapter<Identifier>() {
-                public void write(JsonWriter out, Identifier id) throws IOException {
-                    System.out.println("WRITE: " + id.toString());
-                    out.value(id.toString()); }
-                public Identifier read(JsonReader in) throws IOException {
-                    String v = in.nextString();
-                    System.out.println("READ: " + v);
-                    return Identifier.of(v); }
+                public void write(JsonWriter out, Identifier id) throws IOException { out.value(id.toString()); }
+                public Identifier read(JsonReader in) throws IOException { return Identifier.of(in.nextString()); }
             })
             .registerTypeAdapter(CosmeticProperty.class, new CosmeticProperty.Serializer())
             .setPrettyPrinting()

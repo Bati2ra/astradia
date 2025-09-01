@@ -4,17 +4,16 @@ import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
 import software.bernie.geckolib.animatable.processing.AnimationController;
-import software.bernie.geckolib.animatable.processing.AnimationState;
 import software.bernie.geckolib.animatable.processing.AnimationTest;
 import software.bernie.geckolib.animation.*;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class CosmeticAnimatable implements GeoAnimatable {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final ClientCosmeticInfo cosmetic;
+    private final ClientCosmeticDefinition cosmetic;
     protected static final RawAnimation IDLE_ANIMATION = RawAnimation.begin().thenLoop("idle");
 
-    public CosmeticAnimatable(ClientCosmeticInfo cosmetic) {
+    public CosmeticAnimatable(ClientCosmeticDefinition cosmetic) {
         this.cosmetic = cosmetic;
     }
 

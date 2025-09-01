@@ -1,13 +1,13 @@
 package com.astradia.pojo;
 
-import com.astradia.api.CosmeticInfo;
+import com.astradia.api.CosmeticDefinition;
 import com.astradia.render.CosmeticRenderer;
 import com.google.gson.JsonObject;
 
-public class ClientCosmeticInfo extends CosmeticInfo {
+public class ClientCosmeticDefinition extends CosmeticDefinition {
     private final CosmeticRenderer renderer;
 
-    public ClientCosmeticInfo(JsonObject json) throws Exception {
+    public ClientCosmeticDefinition(JsonObject json) throws Exception {
         super(json);
         renderer = new CosmeticRenderer(this, new CosmeticAnimatable(this));
     }

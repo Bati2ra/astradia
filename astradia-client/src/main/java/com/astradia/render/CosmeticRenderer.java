@@ -3,7 +3,7 @@ package com.astradia.render;
 import com.astradia.impl.AnimatableType;
 import com.astradia.impl.ModelProperty;
 import com.astradia.impl.TextureProperty;
-import com.astradia.pojo.ClientCosmeticInfo;
+import com.astradia.pojo.ClientCosmeticDefinition;
 import com.astradia.pojo.CosmeticAnimatable;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.client.render.RenderLayer;
@@ -27,10 +27,10 @@ import software.bernie.geckolib.util.RenderUtil;
 import java.util.Iterator;
 
 public class CosmeticRenderer extends GeoObjectRenderer<CosmeticAnimatable> {
-    private final ClientCosmeticInfo cosmetic;
+    private final ClientCosmeticDefinition cosmetic;
     private final CosmeticAnimatable animatable;
 
-    public CosmeticRenderer(ClientCosmeticInfo cosmetic, CosmeticAnimatable animatable) {
+    public CosmeticRenderer(ClientCosmeticDefinition cosmetic, CosmeticAnimatable animatable) {
         super(new Model(cosmetic));
         this.cosmetic = cosmetic;
         this.animatable = animatable;
@@ -141,8 +141,8 @@ public class CosmeticRenderer extends GeoObjectRenderer<CosmeticAnimatable> {
     }
 
     static class Model extends GeoModel<CosmeticAnimatable> {
-        ClientCosmeticInfo cosmetic;
-        public Model(ClientCosmeticInfo cosmetic){
+        ClientCosmeticDefinition cosmetic;
+        public Model(ClientCosmeticDefinition cosmetic){
             this.cosmetic = cosmetic;
         }
 

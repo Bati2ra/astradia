@@ -1,10 +1,10 @@
 package com.astradia.player;
 
 import com.astradia.ServerCosmeticStore;
+import com.astradia.api.CosmeticDefinition;
 import com.astradia.api.player.CosmeticSlot;
 import com.astradia.api.player.PlayerCosmeticData;
 import com.astradia.enums.ResponseType;
-import com.astradia.api.CosmeticInfo;
 import com.astradia.utils.CosmeticResponse;
 import com.astradia.utils.SlotUtils;
 import com.google.gson.JsonArray;
@@ -26,7 +26,7 @@ public class PlayerCosmetics extends PlayerFeature {
         super("cosmetics", playerId);
     }
 
-    public CosmeticResponse equipCosmetic(Identifier slotId, CosmeticInfo cosmetic, @Nullable NbtCompound nbt) {
+    public CosmeticResponse equipCosmetic(Identifier slotId, CosmeticDefinition cosmetic, @Nullable NbtCompound nbt) {
         if(!isUnlocked(cosmetic.getId())) return CosmeticResponse.of(ResponseType.LOCKED);
         boolean wasEquipped = equippedInventory.get(slotId).equip(cosmetic);
         if(!wasEquipped) return CosmeticResponse.of(ResponseType.ERROR);
@@ -63,7 +63,7 @@ public class PlayerCosmetics extends PlayerFeature {
     }
 
     public CosmeticResponse unlockAll() {
-        for (CosmeticInfo value : ServerCosmeticStore.INSTANCE.getAll().values()) {
+        for (CosmeticDefinition value : ServerCosmeticStore.INSTANCE.getAll().values()) {
             unlockedCosmetics.add(value.getId());
         }
         isDirty = true;

@@ -2,9 +2,8 @@ package com.astradia.screen;
 
 import com.astradia.AstradiaClient;
 import com.astradia.ClientCosmeticStore;
-import com.astradia.api.CosmeticProperty;
 import com.astradia.player.ClientCosmeticSlot;
-import com.astradia.pojo.ClientCosmeticInfo;
+import com.astradia.pojo.ClientCosmeticDefinition;
 import com.astradia.utils.GsonUtils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -94,7 +93,7 @@ public class DebugOverlay {
         var store = ClientCosmeticStore.INSTANCE;
         if (!store.isReady()) return;
 
-        for (ClientCosmeticInfo value : store.getAll().values()) {
+        for (ClientCosmeticDefinition value : store.getAll().values()) {
             JsonObject data = value.toJson();
 
             // Renderizar cada propiedad del JSON

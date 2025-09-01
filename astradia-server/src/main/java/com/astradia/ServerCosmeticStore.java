@@ -1,7 +1,7 @@
 package com.astradia;
 
+import com.astradia.api.CosmeticDefinition;
 import com.astradia.network.payloads.CosmeticsDataPayload;
-import com.astradia.api.CosmeticInfo;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -20,7 +20,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-public class ServerCosmeticStore extends CosmeticStore<CosmeticInfo> {
+public class ServerCosmeticStore extends CosmeticStore<CosmeticDefinition> {
     public static final ServerCosmeticStore INSTANCE = new ServerCosmeticStore();
     public JsonObject cachedSerializedCosmetics;
     public void initialize() {
@@ -38,7 +38,7 @@ public class ServerCosmeticStore extends CosmeticStore<CosmeticInfo> {
                         InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)
                     ) {
                         JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
-                        CosmeticInfo cosmetic = new CosmeticInfo(json);
+                        CosmeticDefinition cosmetic = new CosmeticDefinition(json);
                         cosmetics.put(cosmetic.getId(), cosmetic);
                         AstradiaServer.LOGGER.info("Registering cosmetic {}", cosmetic.getName());
                     } catch(Exception e) {

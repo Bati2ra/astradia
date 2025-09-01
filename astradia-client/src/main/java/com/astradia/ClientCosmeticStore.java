@@ -1,14 +1,13 @@
 package com.astradia;
 
-import com.astradia.pojo.ClientCosmeticInfo;
+import com.astradia.pojo.ClientCosmeticDefinition;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.minecraft.util.Identifier;
 
-import java.util.Map;
-
-public class ClientCosmeticStore extends CosmeticStore<ClientCosmeticInfo> {
+public class ClientCosmeticStore extends CosmeticStore<ClientCosmeticDefinition> {
     public static final ClientCosmeticStore INSTANCE = new ClientCosmeticStore();
     private boolean isReady;
 
@@ -23,7 +22,7 @@ public class ClientCosmeticStore extends CosmeticStore<ClientCosmeticInfo> {
             for (JsonElement jsonElement : cosmeticsJson) {
                 JsonObject jsonObject = jsonElement.getAsJsonObject();
                 try {
-                    cosmetics.put(jsonObject.get("id").getAsInt(), new ClientCosmeticInfo(jsonObject));
+                    cosmetics.put(Identifier.of(jsonObject.get("id").getAsString()), new ClientCosmeticDefinition(jsonObject));
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }

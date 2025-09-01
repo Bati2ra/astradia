@@ -1,7 +1,8 @@
 package com.astradia.api.player;
 
-import com.astradia.api.CosmeticInfo;
+import com.astradia.api.CosmeticDefinition;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 public class CosmeticSlot extends Slot {
     private PlayerCosmeticData cosmeticData;
@@ -14,9 +15,9 @@ public class CosmeticSlot extends Slot {
         super(name, category);
     }
 
-    public boolean equip(CosmeticInfo cosmetic) {
+    public boolean equip(CosmeticDefinition cosmetic, @Nullable String variantId) {
         if(cosmetic.getSlotId().equals(this.getName())) {
-            cosmeticData = new PlayerCosmeticData(cosmetic);
+            cosmeticData = new PlayerCosmeticData(cosmetic, variantId == null ? "default" : variantId);
             return true;
         }
         return false;

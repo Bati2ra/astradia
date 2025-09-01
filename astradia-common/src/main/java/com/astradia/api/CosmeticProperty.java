@@ -45,10 +45,10 @@ public abstract class CosmeticProperty<T extends CosmeticProperty.PlayerData> {
      * Validates that all required property groups are satisfied
      * and no incompatible types are present.
      */
-    public void validate(CosmeticInfo cosmeticInfo) {
+    public void validate(CosmeticDefinition cosmeticDefinition, CosmeticVariant cosmeticVariant) {
         // Validate required property groups (AND between groups, OR within group)
         for (Set<Class<? extends CosmeticProperty<?>>> group : requiredProperties()) {
-            boolean satisfied = cosmeticInfo.getProperties().keySet().stream()
+            boolean satisfied = cosmeticVariant.getProperties().keySet().stream()
                     .anyMatch(c -> group.stream().anyMatch(req -> req.isAssignableFrom(c)));
 
             if (!satisfied) {
@@ -62,7 +62,7 @@ public abstract class CosmeticProperty<T extends CosmeticProperty.PlayerData> {
 
         // Validate incompatible properties
         for (Class<? extends CosmeticProperty<?>> incompatible : incompatibleTypes()) {
-            boolean hasIncompatible = cosmeticInfo.getProperties().keySet().stream()
+            boolean hasIncompatible = cosmeticVariant.getProperties().keySet().stream()
                     .anyMatch(incompatible::isAssignableFrom);
             if (hasIncompatible) {
                 throw new IllegalArgumentException(

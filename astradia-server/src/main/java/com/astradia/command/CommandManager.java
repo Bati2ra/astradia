@@ -2,10 +2,10 @@ package com.astradia.command;
 
 import com.astradia.AstradiaServer;
 import com.astradia.ServerCosmeticStore;
+import com.astradia.api.CosmeticDefinition;
 import com.astradia.enums.BodyPart;
 import com.astradia.enums.SlotType;
 import com.astradia.player.PlayerData;
-import com.astradia.api.CosmeticInfo;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -193,7 +193,7 @@ public class CommandManager {
                 slotType = bodyPart.getSlots()[slotTypeIndex];
             } catch (Exception ignored) {}
         }
-        for (Map.Entry<Integer, CosmeticInfo> entry : ServerCosmeticStore.INSTANCE.getAll().entrySet()) {
+        for (Map.Entry<Integer, CosmeticDefinition> entry : ServerCosmeticStore.INSTANCE.getAll().entrySet()) {
             if(bodyPart != null) {
                 //if(!entry.getValue().getBodyPart().equals(bodyPart)) continue;
             }

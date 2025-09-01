@@ -1,7 +1,8 @@
 package com.astradia.api.player;
 
-import com.astradia.api.CosmeticInfo;
+import com.astradia.api.CosmeticDefinition;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 public class Slot {
     private final Identifier name;
@@ -24,7 +25,11 @@ public class Slot {
         return category;
     }
 
-    public boolean equip(CosmeticInfo cosmetic) {
+    public boolean equip(CosmeticDefinition cosmetic, @Nullable String variantId) {
         return false;
+    }
+
+    public boolean equip(CosmeticDefinition cosmetic) {
+        return equip(cosmetic, null);
     }
 }
