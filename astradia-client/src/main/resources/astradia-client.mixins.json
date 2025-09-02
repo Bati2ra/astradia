@@ -9,6 +9,9 @@
     "defaultRequire": 1
   },
   "client": [
+    "AbstractClientPlayerEntityMixin",
+    "EntityRenderDispatcherMixin",
+    "HeldItemRendererMixin",
     "KeyboardMixin",
     "PlayerEntityRendererMixin"
   ]
