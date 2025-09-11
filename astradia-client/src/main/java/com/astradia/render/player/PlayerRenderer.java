@@ -6,10 +6,7 @@ import com.astradia.player.body.BodyPartProportion;
 import com.astradia.player.body.BodyProportionsConfig;
 import com.astradia.render.GeoBoneAccessor;
 import com.astradia.render.PatchedArmorEntityModel;
-import com.astradia.render.layer.GeckoArmorLayer;
-import com.astradia.render.layer.GeckoElytraLayer;
-import com.astradia.render.layer.GeckoHeadLayer;
-import com.astradia.render.layer.GeckoPlayerHeldItemLayer;
+import com.astradia.render.layer.*;
 import com.astradia.utils.AstradiaPlayerEntityRenderState;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.Pair;
@@ -78,6 +75,7 @@ public class PlayerRenderer<T extends AbstractClientPlayerEntity & GeoAnimatable
         addRenderLayer(new GeckoPlayerHeldItemLayer<>(this));
         addRenderLayer(new GeckoHeadLayer<>(this, context.getEntityModels()));
         addRenderLayer(new GeckoElytraLayer<>(this, context.getEntityModels(), context.getEquipmentRenderer()));
+        addRenderLayer(new GeckoCapeLayer<>(this, context.getEntityModels(), context.getEquipmentModelLoader()));
     }
 
     protected final boolean addFeature(FeatureRenderer<PlayerEntityRenderState, PlayerEntityModel> feature) {
