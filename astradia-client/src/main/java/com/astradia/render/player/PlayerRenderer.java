@@ -7,6 +7,8 @@ import com.astradia.player.body.BodyProportionsConfig;
 import com.astradia.render.GeoBoneAccessor;
 import com.astradia.render.PatchedArmorEntityModel;
 import com.astradia.render.layer.GeckoArmorLayer;
+import com.astradia.render.layer.GeckoElytraLayer;
+import com.astradia.render.layer.GeckoHeadLayer;
 import com.astradia.render.layer.GeckoPlayerHeldItemLayer;
 import com.astradia.utils.AstradiaPlayerEntityRenderState;
 import com.google.common.collect.Lists;
@@ -74,6 +76,8 @@ public class PlayerRenderer<T extends AbstractClientPlayerEntity & GeoAnimatable
 
         addRenderLayer(new GeckoArmorLayer<>(this, new PatchedArmorEntityModel<>(this, context.getPart(thinArms ? EntityModelLayers.PLAYER_SLIM_INNER_ARMOR : EntityModelLayers.PLAYER_INNER_ARMOR)), new PatchedArmorEntityModel<>(this, context.getPart(thinArms ? EntityModelLayers.PLAYER_SLIM_OUTER_ARMOR : EntityModelLayers.PLAYER_OUTER_ARMOR)), context.getEquipmentRenderer()));
         addRenderLayer(new GeckoPlayerHeldItemLayer<>(this));
+        addRenderLayer(new GeckoHeadLayer<>(this, context.getEntityModels()));
+        addRenderLayer(new GeckoElytraLayer<>(this, context.getEntityModels(), context.getEquipmentRenderer()));
     }
 
     protected final boolean addFeature(FeatureRenderer<PlayerEntityRenderState, PlayerEntityModel> feature) {
