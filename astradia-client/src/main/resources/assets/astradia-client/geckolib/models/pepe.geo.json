@@ -53,41 +53,51 @@
 					"pivot": [-5, 22, 0]
 				},
 				{
-					"name": "RightArm_ph",
+					"name": "RightArmScalePoint",
 					"parent": "RightArm",
 					"pivot": [-4, 24, 0]
 				},
 				{
-					"name": "rwide",
-					"parent": "RightArm_ph",
+					"name": "RightArmClassic",
+					"parent": "RightArmScalePoint",
 					"pivot": [0, 0, 0],
 					"cubes": [
 						{"origin": [-8, 12, -2], "size": [4, 12, 4], "uv": [40, 16]}
 					]
 				},
 				{
-					"name": "bone",
-					"parent": "rwide",
-					"pivot": [0, 0, 0],
-					"cubes": [
-						{"origin": [-8, 12, -2], "size": [4, 12, 4], "inflate": 0.25, "uv": [40, 32]}
-					]
-				},
-				{
-					"name": "rslim",
-					"parent": "RightArm_ph",
+					"name": "RightArmSlim",
+					"parent": "RightArmScalePoint",
 					"pivot": [0, 0, 0],
 					"cubes": [
 						{"origin": [-7, 12, -2], "size": [3, 12, 4], "uv": [40, 16]}
 					]
 				},
 				{
-					"name": "bone2",
-					"parent": "rslim",
-					"pivot": [0, 0, 0],
+					"name": "RightArmLayer",
+					"parent": "RightArmScalePoint",
+					"pivot": [-4, 24, 0]
+				},
+				{
+					"name": "RightArmLayerClassic",
+					"parent": "RightArmLayer",
+					"pivot": [-4, 24, 0],
+					"cubes": [
+						{"origin": [-8, 12, -2], "size": [4, 12, 4], "inflate": 0.25, "uv": [40, 32]}
+					]
+				},
+				{
+					"name": "RightArmLayerSlim",
+					"parent": "RightArmLayer",
+					"pivot": [-4, 24, 0],
 					"cubes": [
 						{"origin": [-7, 12, -2], "size": [3, 12, 4], "inflate": 0.25, "uv": [40, 32]}
 					]
+				},
+				{
+					"name": "RightHandItem",
+					"parent": "RightArmScalePoint",
+					"pivot": [-6, 12, -2]
 				},
 				{
 					"name": "LeftArm",
@@ -95,41 +105,51 @@
 					"pivot": [5, 22, 0]
 				},
 				{
-					"name": "LeftArm_ph",
+					"name": "LeftArmScalePoint",
 					"parent": "LeftArm",
 					"pivot": [4, 24, 0]
 				},
 				{
-					"name": "lwide",
-					"parent": "LeftArm_ph",
+					"name": "LeftArmClassic",
+					"parent": "LeftArmScalePoint",
 					"pivot": [0, 0, 0],
 					"cubes": [
 						{"origin": [4, 12, -2], "size": [4, 12, 4], "uv": [32, 48]}
 					]
 				},
 				{
-					"name": "bone3",
-					"parent": "lwide",
-					"pivot": [0, 0, 0],
-					"cubes": [
-						{"origin": [4, 12, -2], "size": [4, 12, 4], "inflate": 0.25, "uv": [48, 48]}
-					]
-				},
-				{
-					"name": "lslim",
-					"parent": "LeftArm_ph",
+					"name": "LeftArmSlim",
+					"parent": "LeftArmScalePoint",
 					"pivot": [5, 22, 0],
 					"cubes": [
 						{"origin": [4, 12, -2], "size": [3, 12, 4], "uv": [32, 48]}
 					]
 				},
 				{
-					"name": "bone4",
-					"parent": "lslim",
+					"name": "LeftArmLayer",
+					"parent": "LeftArmScalePoint",
+					"pivot": [5, 22, 0]
+				},
+				{
+					"name": "LeftArmLayerClassic",
+					"parent": "LeftArmLayer",
+					"pivot": [0, 0, 0],
+					"cubes": [
+						{"origin": [4, 12, -2], "size": [4, 12, 4], "inflate": 0.25, "uv": [48, 48]}
+					]
+				},
+				{
+					"name": "LeftArmLayerSlim",
+					"parent": "LeftArmLayer",
 					"pivot": [0, 0, 0],
 					"cubes": [
 						{"origin": [4, 12, -2], "size": [3, 12, 4], "inflate": 0.25, "uv": [48, 48]}
 					]
+				},
+				{
+					"name": "LeftHandItem",
+					"parent": "LeftArmScalePoint",
+					"pivot": [6, 12, -2]
 				},
 				{
 					"name": "Body",
@@ -138,11 +158,6 @@
 					"cubes": [
 						{"origin": [-4, 12, -2], "size": [8, 12, 4], "uv": [16, 16]}
 					]
-				},
-				{
-					"name": "BodyAux",
-					"parent": "Body",
-					"pivot": [0, 12, 0]
 				},
 				{
 					"name": "BodyLayer",
@@ -157,14 +172,16 @@
 					"parent": "Root",
 					"pivot": [0, 24, 0],
 					"cubes": [
-						{"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [0, 0]},
-						{"origin": [-4, 24, -4], "size": [8, 8, 8], "inflate": 0.5, "uv": [32, 0]}
+						{"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [0, 0]}
 					]
 				},
 				{
 					"name": "HeadLayer",
 					"parent": "Head",
-					"pivot": [0, 0, 0]
+					"pivot": [0, 0, 0],
+					"cubes": [
+						{"origin": [-4, 24, -4], "size": [8, 8, 8], "inflate": 0.5, "uv": [32, 0]}
+					]
 				}
 			]
 		}
