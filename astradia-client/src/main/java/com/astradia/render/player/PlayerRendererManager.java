@@ -5,6 +5,7 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
+import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.SkinTextures;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.resource.ResourceManager;
@@ -21,6 +22,10 @@ public class PlayerRendererManager {
 
     public PlayerRenderer getRenderer(AbstractClientPlayerEntity player) {
         return modelRenderers.get(player.getSkinTextures().model());
+    }
+
+    public PlayerRenderer getRenderer(PlayerEntityRenderState player) {
+        return modelRenderers.get(player.skinTextures.model());
     }
 
     public void reload(ResourceManager manager, EntityRendererFactory.Context context, Map<SkinTextures.Model, EntityRenderer<? extends PlayerEntity, ?>> originalRenderers) {
