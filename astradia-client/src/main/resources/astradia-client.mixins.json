@@ -11,7 +11,9 @@
   "client": [
     "AbstractClientPlayerEntityMixin",
     "EntityRenderDispatcherMixin",
+    "GeoBoneMixin",
     "HeldItemRendererMixin",
+    "InventoryScreenMixin",
     "KeyboardMixin",
     "PlayerEntityRendererMixin"
   ]
