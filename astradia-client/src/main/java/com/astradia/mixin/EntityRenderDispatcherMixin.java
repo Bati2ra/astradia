@@ -5,6 +5,8 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
+import net.minecraft.client.render.entity.state.EntityRenderState;
+import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.SkinTextures;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -28,6 +30,13 @@ public class EntityRenderDispatcherMixin {
     public void vento$getRenderer(Entity entity, CallbackInfoReturnable<EntityRenderer<? super Entity, ?>> cir) {
         if(entity instanceof AbstractClientPlayerEntity player) {
             cir.setReturnValue(PlayerRendererManager.INSTANCE.getRenderer(player));
+        }
+    }
+
+    @Inject(at = @At("HEAD"), method = "getRenderer(Lnet/minecraft/client/render/entity/state/EntityRenderState;)Lnet/minecraft/client/render/entity/EntityRenderer;", cancellable = true)
+    public <S extends EntityRenderState> void vento$getRenderer(S state, CallbackInfoReturnable<EntityRenderer<? super Entity, ?>> cir) {
+        if(state instanceof PlayerEntityRenderState playerEntityRenderState) {
+            cir.setReturnValue(PlayerRendererManager.INSTANCE.getRenderer(playerEntityRenderState));
         }
     }
 
