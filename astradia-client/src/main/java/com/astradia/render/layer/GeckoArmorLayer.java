@@ -5,7 +5,6 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.equipment.EquipmentModel;
 import net.minecraft.client.render.entity.equipment.EquipmentRenderer;
-import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.math.MatrixStack;
@@ -14,8 +13,6 @@ import net.minecraft.component.type.EquippableComponent;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Arm;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
@@ -47,7 +44,7 @@ public class GeckoArmorLayer<T extends LivingEntity & GeoAnimatable, O,
     }
 
     public static boolean hasModel(ItemStack stack, EquipmentSlot slot) {
-        EquippableComponent equippableComponent = (EquippableComponent)stack.get(DataComponentTypes.EQUIPPABLE);
+        EquippableComponent equippableComponent = stack.get(DataComponentTypes.EQUIPPABLE);
         return equippableComponent != null && hasModel(equippableComponent, slot);
     }
 
@@ -65,9 +62,8 @@ public class GeckoArmorLayer<T extends LivingEntity & GeoAnimatable, O,
     }
 
     private void renderArmor(MatrixStack matrices, VertexConsumerProvider vertexConsumers, ItemStack stack, EquipmentSlot slot, int light, A armorModel) {
-        EquippableComponent equippableComponent = (EquippableComponent)stack.get(DataComponentTypes.EQUIPPABLE);
+        EquippableComponent equippableComponent = stack.get(DataComponentTypes.EQUIPPABLE);
         if (equippableComponent != null && hasModel(equippableComponent, slot)) {
-            //((BipedEntityModel)this.getContextModel()).copyTransforms(armorModel);
             this.setVisible(armorModel, slot);
             EquipmentModel.LayerType layerType = this.usesInnerModel(slot) ? EquipmentModel.LayerType.HUMANOID_LEGGINGS : EquipmentModel.LayerType.HUMANOID;
             this.equipmentRenderer.render(layerType, equippableComponent.assetId().orElseThrow(), armorModel, stack, matrices, vertexConsumers, light);

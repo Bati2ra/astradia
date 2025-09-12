@@ -8,10 +8,8 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.SkullBlockEntityModel;
 import net.minecraft.client.render.block.entity.SkullBlockEntityRenderer;
-import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.feature.HeadFeatureRenderer;
 import net.minecraft.client.render.entity.model.LoadedEntityModels;
-import net.minecraft.client.render.entity.model.ModelWithHead;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
@@ -58,9 +56,9 @@ public class GeckoHeadLayer<T extends LivingEntity & GeoAnimatable, O, R extends
                 newMatrixStack.scale(1.1875F, -1.1875F, -1.1875F);
                 newMatrixStack.translate(-0.5, 0.0, -0.5);
                 SkullBlock.SkullType skullType = renderState.wearingSkullType;
-                SkullBlockEntityModel skullBlockEntityModel = (SkullBlockEntityModel)this.headModels.apply(skullType);
+                SkullBlockEntityModel skullBlockEntityModel = this.headModels.apply(skullType);
                 RenderLayer renderLayer = SkullBlockEntityRenderer.getRenderLayer(skullType, renderState.wearingSkullProfile);
-                SkullBlockEntityRenderer.renderSkull((Direction)null, 180.0F, renderState.headItemAnimationProgress, newMatrixStack, bufferSource, packedLight, skullBlockEntityModel, renderLayer);
+                SkullBlockEntityRenderer.renderSkull(null, 180.0F, renderState.headItemAnimationProgress, newMatrixStack, bufferSource, packedLight, skullBlockEntityModel, renderLayer);
             } else {
                 translate(newMatrixStack, this.headTransformation);
                 renderState.headItemRenderState.render(newMatrixStack, bufferSource, packedLight, OverlayTexture.DEFAULT_UV);

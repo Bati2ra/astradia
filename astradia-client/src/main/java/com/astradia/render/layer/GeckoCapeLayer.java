@@ -8,7 +8,6 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.equipment.EquipmentModel;
 import net.minecraft.client.render.entity.equipment.EquipmentModelLoader;
-import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.*;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.SkinTextures;
@@ -17,7 +16,6 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.EquippableComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKey;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
@@ -32,14 +30,14 @@ public class GeckoCapeLayer<T extends LivingEntity & GeoAnimatable, O, R extends
 
     public GeckoCapeLayer(GeoRenderer<T, O, R> renderer, LoadedEntityModels modelLoader, EquipmentModelLoader equipmentModelLoader) {
         super(renderer);
-        this.model = new PlayerCapeModel(modelLoader.getModelPart(EntityModelLayers.PLAYER_CAPE));
+        this.model = new PlayerCapeModel<>(modelLoader.getModelPart(EntityModelLayers.PLAYER_CAPE));
         this.equipmentModelLoader = equipmentModelLoader;
     }
 
     private boolean hasCustomModelForLayer(ItemStack stack, EquipmentModel.LayerType layerType) {
-        EquippableComponent equippableComponent = (EquippableComponent)stack.get(DataComponentTypes.EQUIPPABLE);
-        if (equippableComponent != null && !equippableComponent.assetId().isEmpty()) {
-            EquipmentModel equipmentModel = this.equipmentModelLoader.get((RegistryKey)equippableComponent.assetId().get());
+        EquippableComponent equippableComponent = stack.get(DataComponentTypes.EQUIPPABLE);
+        if (equippableComponent != null && equippableComponent.assetId().isPresent()) {
+            EquipmentModel equipmentModel = this.equipmentModelLoader.get(equippableComponent.assetId().get());
             return !equipmentModel.getLayers(layerType).isEmpty();
         } else {
             return false;
