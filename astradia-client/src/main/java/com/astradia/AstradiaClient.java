@@ -5,6 +5,7 @@ import com.astradia.player.PlayerManager;
 import com.astradia.render.layer.CosmeticLayer;
 
 import com.astradia.screen.DebugOverlay;
+import com.astradia.token.TokenRegistry;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
@@ -32,7 +33,7 @@ public class AstradiaClient implements ModInitializer {
 		playerManager = new PlayerManager();
 		playerManager.initialize();
 		ClientNetworkManager.initialize();
-
+		TokenRegistry.initialize();
 	}
 
 	public static PlayerManager getPlayerManager() {
