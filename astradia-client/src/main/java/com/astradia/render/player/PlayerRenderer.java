@@ -17,9 +17,7 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
-import net.minecraft.client.render.entity.feature.ArmorFeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
-import net.minecraft.client.render.entity.model.ArmorEntityModel;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
@@ -30,6 +28,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.*;
+import software.bernie.geckolib.GeckoLibServices;
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
@@ -57,13 +56,21 @@ public class PlayerRenderer<T extends AbstractClientPlayerEntity & GeoAnimatable
 
     public GeoBone rightArmPh, leftArmPh;
 
-    private GeoBone rSlim, lSlim;
-    private GeoBone rWide, lWide;
+    private GeoBone rightArmSlim, leftArmSlim;
+    private GeoBone rightArmClassic, leftArmClassic;
+    private GeoBone rightArmLayerSlim, leftArmLayerSlim;
+    private GeoBone rightArmLayerClassic, leftArmLayerClassic;
+
     private boolean thin;
+    
+    private GeoBone hat;
+    private GeoBone jacket;
+    private GeoBone rightSleeve;
+    private GeoBone leftSleeve;
+    private GeoBone rightPants;
+    private GeoBone leftPants;
 
-    private final PlayerEntityRenderer original;
-
-    protected final List<FeatureRenderer<PlayerEntityRenderState, PlayerEntityModel>> features = Lists.newArrayList();
+    public final PlayerEntityRenderer original;
 
     public PlayerRenderer(EntityRendererFactory.Context context, PlayerModel<T> model, boolean thinArms,
                           PlayerEntityRenderer original) {
@@ -78,11 +85,7 @@ public class PlayerRenderer<T extends AbstractClientPlayerEntity & GeoAnimatable
         addRenderLayer(new GeckoCapeLayer<>(this, context.getEntityModels(), context.getEquipmentModelLoader()));
     }
 
-    protected final boolean addFeature(FeatureRenderer<PlayerEntityRenderState, PlayerEntityModel> feature) {
-        return this.features.add(feature);
-    }
-
-    private void setupBones() {
+    private void retrievePlayerBones() {
         if(root != null) return;
         AstradiaClient.LOGGER.info("[PlayerRenderer] Retrieving bones from player model");
         root = getBoneOrThrow("Root");
@@ -92,21 +95,29 @@ public class PlayerRenderer<T extends AbstractClientPlayerEntity & GeoAnimatable
         leftArm = getBoneOrThrow("LeftArm");
         rightLeg = getBoneOrThrow("RightLeg");
         leftLeg = getBoneOrThrow("LeftLeg");
+        
+        hat = getBoneOrThrow("HeadLayer");
+        jacket = getBoneOrThrow("BodyLayer");
+        rightSleeve = getBoneOrThrow("RightArmLayer");
+        leftSleeve = getBoneOrThrow("LeftArmLayer");
+        rightPants = getBoneOrThrow("RightLegLayer");
+        leftPants = getBoneOrThrow("LeftLegLayer");
+        
+        // utility
         rightArmPh = getBoneOrThrow("RightArmScalePoint");
         leftArmPh = getBoneOrThrow("LeftArmScalePoint");
-
         rightHandItem = getBoneOrThrow("RightHandItem");
         leftHandItem = getBoneOrThrow("LeftHandItem");
 
-        rSlim = getBoneOrThrow("RightArmSlim");
-        lSlim = getBoneOrThrow("LeftArmSlim");
-        rWide = getBoneOrThrow("RightArmClassic");
-        lWide = getBoneOrThrow("LeftArmClassic");
+        rightArmSlim = getBoneOrThrow("RightArmSlim");
+        leftArmSlim = getBoneOrThrow("LeftArmSlim");
+        rightArmClassic = getBoneOrThrow("RightArmClassic");
+        leftArmClassic = getBoneOrThrow("LeftArmClassic");
 
-        rWide.setHidden(thin);
-        lWide.setHidden(thin);
-        rSlim.setHidden(!thin);
-        lSlim.setHidden(!thin);
+        rightArmLayerSlim = getBoneOrThrow("RightArmLayerSlim");
+        leftArmLayerSlim = getBoneOrThrow("LeftArmLayerSlim");
+        rightArmLayerClassic = getBoneOrThrow("RightArmLayerClassic");
+        leftArmLayerClassic = getBoneOrThrow("LeftArmLayerClassic");
 
         ((GeoBoneAccessor) root).setShouldCaptureVisualMatrix(true);
         ((GeoBoneAccessor) head).setShouldCaptureVisualMatrix(true);
@@ -134,7 +145,7 @@ public class PlayerRenderer<T extends AbstractClientPlayerEntity & GeoAnimatable
 
     @Override
     public void preRender(R renderState, MatrixStack poseStack, BakedGeoModel model, @Nullable VertexConsumerProvider bufferSource, @Nullable VertexConsumer buffer, boolean isReRender, int packedLight, int packedOverlay, int renderColor) {
-        setupBones();
+        retrievePlayerBones();
         super.preRender(renderState, poseStack, model, bufferSource, buffer, isReRender, packedLight, packedOverlay, renderColor);
     }
 
@@ -155,23 +166,17 @@ public class PlayerRenderer<T extends AbstractClientPlayerEntity & GeoAnimatable
             poseStack.translate(0.0F, 0.01F, 0.0F);
         }
         this.modelRenderTranslations = new Matrix4f(poseStack.peek().getPositionMatrix());
+        this.withScale(0.9375F);
+        setupBoneVisibility(renderState);
         copyOriginalRotations(renderState);
         if (buffer != null) {
             if (renderType != null) {
                 poseStack.push();
-                this.renderRecursively(renderState, poseStack, model.getBone("Root").get(), renderType, bufferSource, buffer, isReRender, packedLight, packedOverlay, renderColor);
+                this.renderRecursively(renderState, poseStack, root, renderType, bufferSource, buffer, isReRender, packedLight, packedOverlay, renderColor);
                 poseStack.pop();
 
             }
         }
-
-/*
-        Iterator var15 = this.features.iterator();
-        PlayerEntityRenderState playerEntityRenderState = (PlayerEntityRenderState) renderState;
-        while(var15.hasNext()) {
-            FeatureRenderer<PlayerEntityRenderState, PlayerEntityModel> featureRenderer = (FeatureRenderer)var15.next();
-            featureRenderer.render(poseStack, bufferSource, packedLight, playerEntityRenderState, playerEntityRenderState.relativeHeadYaw, playerEntityRenderState.pitch);
-        }*/
     }
 
     @Override
@@ -218,7 +223,7 @@ public class PlayerRenderer<T extends AbstractClientPlayerEntity & GeoAnimatable
 
     @Override
     public void fireCompileRenderStateEvent(T t, Void o, R playerRenderState) {
-
+        GeckoLibServices.Client.EVENTS.fireCompileEntityRenderLayers(this);
     }
 
     @Override
@@ -234,22 +239,37 @@ public class PlayerRenderer<T extends AbstractClientPlayerEntity & GeoAnimatable
     private GeoBone getBoneOrThrow(String bone) {
         return model.getBone(bone).orElseThrow(() -> new RuntimeException("[PlayerRenderer] Couldn't find bone '" + bone + "', check if its missing."));
     }
+    
+    private void setupBoneVisibility(R state) {
+        boolean bl = state.spectator;
+        body.setHidden(bl);
+        rightArm.setHidden(bl);
+        leftArm.setHidden(bl);
+        rightLeg.setHidden(bl);
+        leftLeg.setHidden(bl);
 
-    private void copyVisibilityFrom(ModelPart from, GeoBone to) {
-        to.setHidden(!from.visible);
+        hat.setHidden(!state.hatVisible);
+        jacket.setHidden(!state.jacketVisible);
+        rightSleeve.setHidden(!state.rightSleeveVisible);
+        leftSleeve.setHidden(!state.leftSleeveVisible);
+        rightPants.setHidden(!state.rightPantsLegVisible);
+        leftPants.setHidden(!state.leftPantsLegVisible);
+
+        rightArmClassic.setHidden(thin);
+        leftArmClassic.setHidden(thin);
+        rightArmSlim.setHidden(!thin);
+        leftArmSlim.setHidden(!thin);
+
+        rightArmLayerClassic.setHidden(thin);
+        leftArmLayerClassic.setHidden(thin);
+        rightArmLayerSlim.setHidden(!thin);
+        leftArmLayerSlim.setHidden(!thin);
     }
 
     private void copyOriginalRotations(R state) {
         UUID uuid = ((AstradiaPlayerEntityRenderState) state).getUuid();
         PlayerBodyProportions playerProportions = AstradiaClient.getPlayerManager().getFromUuid(uuid).getProportions();
         BodyProportionsConfig config = playerProportions.getConfig();
-
-        config.rightArm.setValue(BodyPartProportion.Axis.Y, 1.3f);
-        config.torso.setValue(BodyPartProportion.Axis.Y, 0.7f);
-        config.rightLeg.setValue(BodyPartProportion.Axis.Y, 1.3f);
-        config.leftLeg.setValue(BodyPartProportion.Axis.Y, 1.3f);
-        config.height.setValue(BodyPartProportion.Axis.Y, 0.6f);
-        config.width.setValue(BodyPartProportion.Axis.X, 0.6f);
 
         float headXYZ = config.head.getValue(BodyPartProportion.Axis.X);
         float bodyXZ = config.torso.getValue(BodyPartProportion.Axis.X),
