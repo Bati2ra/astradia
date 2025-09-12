@@ -1,5 +1,6 @@
 package com.astradia.player.body;
 
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Map;
 
@@ -134,5 +135,18 @@ public class BodyProportionsConfig {
         );
 
         return new BodyProportionsConfig(head, torso, leftArm, rightArm, leftLeg, rightLeg, width, height);
+    }
+
+    public Map<String, BodyPartProportion> getAllParts() {
+        return Map.of(
+                "Head", head,
+                "Torso", torso,
+                "Left Arm", leftArm,
+                "Right Arm", rightArm,
+                "Left Leg", leftLeg,
+                "Right Leg", rightLeg,
+                "Width", width,
+                "Height", height
+        );
     }
 }

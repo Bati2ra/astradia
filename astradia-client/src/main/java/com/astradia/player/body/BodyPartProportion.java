@@ -53,6 +53,10 @@ public class BodyPartProportion {
         return linkedAxes;
     }
 
+    public Map<Axis, Range> getRanges() {
+        return ranges;
+    }
+
     public boolean isValid() {
         for (Axis axis : values.keySet()) {
             float value = values.get(axis);
