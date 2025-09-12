@@ -8,7 +8,9 @@ import net.minecraft.client.render.entity.state.EntityRenderState;
 import net.minecraft.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
+import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 @Mixin(InventoryScreen.class)
 abstract class InventoryScreenMixin {
@@ -20,7 +22,11 @@ abstract class InventoryScreenMixin {
     )
     private static EntityRenderState wrapRenderState(EntityRenderer<?, ?> instance, Entity entity, float tickProgress, Operation<EntityRenderState> original) {
         if(instance instanceof GeoEntityRenderer geoEntityRenderer) {
-            return geoEntityRenderer.getAndUpdateRenderState(entity, tickProgress);
+            var state = geoEntityRenderer.getAndUpdateRenderState(entity, tickProgress);
+            if(state instanceof GeoRenderState geoRenderState) {
+                geoRenderState.addGeckolibData(DataTickets.PACKED_LIGHT, 15728880);
+            }
+            return state;
         } else {
             return original.call(instance, entity, tickProgress);
         }
