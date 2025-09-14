@@ -16,6 +16,9 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class PlayerManager {
+    private static final String LOG_PREFIX = "[PlayerManager]";
+    private static final String DATA_PREFIX = "[PlayerData]";
+
     protected final HashMap<UUID, PlayerData> players;
     private final PlayerDataStore store;
     public PlayerManager(MinecraftServer server) {
@@ -26,20 +29,13 @@ public class PlayerManager {
     public void initialize() {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> onPlayerDisconnect(handler.getPlayer()));
         ServerPlayConnectionEvents.JOIN.register(((serverPlayNetworkHandler, packetSender, minecraftServer) -> onPlayerConnect(serverPlayNetworkHandler.getPlayer())));
-        VentoServer.LOGGER.info("[PlayerManager] Inicializado y escuchando eventos de conexión/desconexión.");
+        VentoServer.LOGGER.info("{} Initialized and listening for connection/disconnection events.", LOG_PREFIX);
     }
 
-    /**
-     * Obtiene PlayerData desde una entidad de jugador.
-     */
     public PlayerData getFromPlayer(PlayerEntity player) {
         return getFromUuid(player.getUuid());
     }
 
-    /**
-     * Obtiene PlayerData desde un UUID.
-     * Si el jugador aún no existe en el mapa, se instancia.
-     */
     public PlayerData getFromUuid(UUID uuid) {
         if(!players.containsKey(uuid)) {
             instantiatePlayer(uuid);
@@ -47,94 +43,62 @@ public class PlayerManager {
         return players.get(uuid);
     }
 
-    /**
-     * Crea y almacena un PlayerData vacío para un UUID específico.
-     */
     public void instantiatePlayer(UUID player) {
         PlayerData playerData = new PlayerData(player);
         players.put(player, playerData);
-        VentoServer.LOGGER.debug("[PlayerManager] PlayerData creado en memoria para UUID {}.", player);
+        VentoServer.LOGGER.debug("{} Created in-memory PlayerData for UUID {}", LOG_PREFIX, player);
     }
 
-    /**
-     * Evento: cuando un jugador se desconecta.
-     * Aquí es buen lugar para guardar datos en la base de datos y limpiar memoria.
-     */
     private void onPlayerDisconnect(ServerPlayerEntity player) {
         UUID uuid = player.getUuid();
-        VentoServer.LOGGER.info("[PlayerManager] Jugador {} (UUID {}) se desconectó. Guardando y removiendo datos...", player.getName().getString(), uuid);
-        // TODO: guardar PlayerData en la base de datos de manera asíncrona.
+        VentoServer.LOGGER.info("{} Player '{}' (UUID {}) disconnected. Saving and clearing data...", LOG_PREFIX, player.getName().getString(), uuid);
         store.save(uuid, getFromPlayer(player));
     }
 
-    /**
-     * Evento: cuando un jugador se conecta al servidor.
-     * Aquí se inicia la carga de datos desde la base de datos.
-     */
     private void onPlayerConnect(ServerPlayerEntity player) {
         UUID uuid = player.getUuid();
-        VentoServer.LOGGER.info("[PlayerManager] Jugador {} (UUID {}) se conectó. Iniciando carga de datos...", player.getName().getString(), uuid);
+        VentoServer.LOGGER.info("{} Player '{}' (UUID {}) connected. Loading data...", LOG_PREFIX, player.getName().getString(), uuid);
 
-        // cargar datos de BD
         PlayerData playerData = store.load(uuid);
         playerData.setLoading(false);
         players.put(uuid, playerData);
 
-        VentoServer.LOGGER.info("[PlayerData] Datos de {} cargados correctamente. Enviando información inicial a sí mismo y jugadores cercanos.", player.getName().getString());
-
+        VentoServer.LOGGER.info("{} Data for '{}' loaded successfully. Dispatching to self and nearby players.", DATA_PREFIX, player.getName().getString());
         sendToTrackingPlayersAndSelf(player);
     }
 
-    /**
-     * Evento: cuando un jugador comienza a trackear a otro.
-     */
     public void onPlayerTracking(ServerPlayerEntity player, ServerPlayerEntity trackedPlayer) {
         PlayerData trackedData = VentoServer.getPlayerManager().getFromPlayer(trackedPlayer);
 
         if (trackedData.isLoading()) {
-            VentoServer.LOGGER.warn("[PlayerData] {} intentó trackear a {}, pero sus datos aún están cargando. Se ignorará.",
-                    player.getName().getString(), trackedPlayer.getName().getString());
+            VentoServer.LOGGER.debug("{} '{}' attempted to track '{}', but their data is still loading. Skipping transmission.",
+                    DATA_PREFIX, player.getName().getString(), trackedPlayer.getName().getString());
             return;
         }
 
         sendToPlayer(trackedPlayer, player);
     }
 
-    /**
-     * Envía los datos de un jugador a otro jugador específico.
-     */
     public void sendToPlayer(ServerPlayerEntity source, ServerPlayerEntity target) {
         PlayerData playerData = getFromPlayer(source);
         NetworkManager.sendToPlayer(target, new PlayerDataPayload(playerData.toJson().toString()));
-
-        VentoServer.LOGGER.debug("[PlayerData] Enviando datos de {} -> {}.", source.getName().getString(), target.getName().getString());
+        VentoServer.LOGGER.debug("{} Sent PlayerData from '{}' to '{}'.", DATA_PREFIX, source.getName().getString(), target.getName().getString());
     }
 
-    /**
-     * Envía los datos de un jugador a sí mismo (útil al conectarse).
-     */
-    public void sendToSelf(ServerPlayerEntity player) {
-        sendToPlayer(player, player);
-    }
-
-    /**
-     * Envía los datos de un jugador a todos los que lo están trackeando.
-     * Si withSelf es true, también se los envía al propio jugador.
-     */
     private void sendToTrackingPlayers(ServerPlayerEntity player, boolean withSelf) {
         PlayerData playerData = getFromPlayer(player);
 
         PlayerDataPayload payload = new PlayerDataPayload(playerData.toJson().toString());
         if(withSelf) ServerPlayNetworking.send(player, payload);
         Collection<ServerPlayerEntity> trackingPlayers = PlayerLookup.tracking(player);
-        for (ServerPlayerEntity serverPlayerEntity : trackingPlayers) {
-            ServerPlayNetworking.send(serverPlayerEntity, payload);
-            VentoServer.LOGGER.debug("[PlayerData] Enviando datos de {} -> {}.", player.getName().getString(), serverPlayerEntity.getName().getString());
+        for (ServerPlayerEntity tracker  : trackingPlayers) {
+            ServerPlayNetworking.send(tracker , payload);
+            VentoServer.LOGGER.debug("{} Sent PlayerData from '{}' to '{}'.", DATA_PREFIX, player.getName().getString(), tracker.getName().getString());
         }
-        VentoServer.LOGGER.info("[PlayerData] Datos de {} enviados a {} jugadores en rango ({} incluido: {}).",
+        VentoServer.LOGGER.debug("{} Dispatched PlayerData for '{}' to {} tracking players (self included: {}).",
+                DATA_PREFIX,
                 player.getName().getString(),
                 trackingPlayers.size(),
-                player.getName().getString(),
                 withSelf);
     }
 
