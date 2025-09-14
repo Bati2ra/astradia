@@ -1,6 +1,6 @@
 package com.astradia.player;
 
-import com.astradia.ServerCosmeticStore;
+import com.astradia.store.ServerCosmeticStore;
 import com.astradia.api.player.CosmeticSlot;
 import com.astradia.api.player.PlayerCosmeticData;
 import com.astradia.enums.ResponseType;

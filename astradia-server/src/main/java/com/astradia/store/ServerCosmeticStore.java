@@ -1,5 +1,7 @@
-package com.astradia;
+package com.astradia.store;
 
+import com.astradia.CosmeticStore;
+import com.astradia.VentoServer;
 import com.astradia.network.payloads.CosmeticsDataPayload;
 import com.astradia.api.CosmeticInfo;
 import com.google.gson.JsonArray;
@@ -21,51 +23,55 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class ServerCosmeticStore extends CosmeticStore<CosmeticInfo> {
+    private static final String LOG_PREFIX = "[CosmeticStore]";
     public static final ServerCosmeticStore INSTANCE = new ServerCosmeticStore();
     public JsonObject cachedSerializedCosmetics;
     public void initialize() {
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
             public Identifier getFabricId() {
-                return Identifier.of(AstradiaServer.MOD_ID, "cosmetics");
+                return Identifier.of(VentoServer.MOD_ID, "cosmetics");
             }
 
             @Override
             public void reload(ResourceManager manager) {
+                VentoServer.LOGGER.info("{} Reloading cosmetic definitions from data packs...", LOG_PREFIX);
                 cosmetics.clear();
-                for(Map.Entry<Identifier, Resource> resourceEntry : manager.findResources("cosmetics", path -> path.toString().endsWith(".json")).entrySet()) {
+
+                var resources = manager.findResources("cosmetics", path -> path.toString().endsWith(".json"));
+                VentoServer.LOGGER.info("{} Found {} cosmetic JSON files.", LOG_PREFIX, resources.size());
+                for(Map.Entry<Identifier, Resource> resourceEntry : resources.entrySet()) {
                     try(InputStream stream = resourceEntry.getValue().getInputStream();
                         InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)
                     ) {
                         JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
                         CosmeticInfo cosmetic = new CosmeticInfo(json);
                         cosmetics.put(cosmetic.getId(), cosmetic);
-                        AstradiaServer.LOGGER.info("Registering cosmetic {}", cosmetic.getName());
+                        VentoServer.LOGGER.info("{} Registered cosmetic '{}' ({})", LOG_PREFIX, cosmetic.getName(), cosmetic.getId());
                     } catch(Exception e) {
-                        AstradiaServer.LOGGER.error("Error occurred while loading resource json {}", resourceEntry.getKey().toString(), e);
+                        VentoServer.LOGGER.error("{} Failed to load cosmetic JSON '{}'", LOG_PREFIX, resourceEntry.getKey());
+                        VentoServer.LOGGER.debug("{} Exception: {}", LOG_PREFIX, e);
                     }
                 }
                 cachedSerializedCosmetics = getSerializedCosmetics();
+                VentoServer.LOGGER.info("{} Cosmetic registry updated. Total cosmetics: {}", LOG_PREFIX, cosmetics.size());
             }
         });
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayer, joined) -> sendToPlayer(serverPlayer));
     }
 
     public void sendToPlayer(ServerPlayerEntity player) {
-        System.out.println("test: " + cachedSerializedCosmetics.toString());
         ServerPlayNetworking.send(player, new CosmeticsDataPayload(cachedSerializedCosmetics.toString()));
-        AstradiaServer.LOGGER.info("[Cosmetics] Enviando información de cosméticos a {}.", player.getDisplayName().getString());
+        VentoServer.LOGGER.info("{} Sent cosmetic data to player '{}'", LOG_PREFIX, player.getGameProfile().getName());
     }
 
     private JsonObject getSerializedCosmetics() {
-        JsonObject jsonObject = new JsonObject();
-        JsonArray jsonArray = new JsonArray();
-        var iterator = cosmetics.entrySet().stream().iterator();
-        while(iterator.hasNext()) {
-            var entry = iterator.next();
-            jsonArray.add(entry.getValue().toJson());
-        }
-        jsonObject.add("cosmetics", jsonArray);
-        return jsonObject;
+        JsonObject root = new JsonObject();
+        JsonArray array = new JsonArray();
+
+        cosmetics.values().forEach(cosmetic -> array.add(cosmetic.toJson()));
+        root.add("cosmetics", array);
+
+        return root;
     }
 }

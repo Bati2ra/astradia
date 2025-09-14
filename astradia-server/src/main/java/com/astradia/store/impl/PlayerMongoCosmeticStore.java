@@ -1,5 +1,6 @@
-package com.astradia.store;
+package com.astradia.store.impl;
 
+import com.astradia.store.MongoStore;
 import com.mongodb.MongoException;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;

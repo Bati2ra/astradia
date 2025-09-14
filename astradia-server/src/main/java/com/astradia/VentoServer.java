@@ -3,16 +3,15 @@ package com.astradia;
 import com.astradia.command.CommandManager;
 import com.astradia.network.NetworkManager;
 import com.astradia.player.PlayerManager;
+import com.astradia.store.ServerCosmeticStore;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AstradiaServer implements ModInitializer {
+public class VentoServer implements ModInitializer {
 	public static final String MOD_ID = "astradia-server";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-
-	//private static PlayerCosmeticStore playerCosmeticStore;
 
 	private static PlayerManager playerManager;
 	@Override
@@ -20,19 +19,15 @@ public class AstradiaServer implements ModInitializer {
 		LOGGER.info("Hello Fabric world!");
 		ServerLifecycleEvents.SERVER_STARTING.register((server) -> {
 			Database.connect();
-			//playerCosmeticStore = new PlayerCosmeticStore();
 			playerManager = new PlayerManager(server);
 			playerManager.initialize();
 		});
 		ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {
-			//ServerPlayerManager.INSTANCE.onServerClose();
 			Database.disconnect();
 		});
 		ServerCosmeticStore.INSTANCE.initialize();
 		CommandManager.initialize();
 		NetworkManager.initialize();
-
-
 	}
 
 	public static PlayerManager getPlayerManager() {

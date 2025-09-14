@@ -1,6 +1,6 @@
 package com.astradia.player;
 
-import com.astradia.AstradiaServer;
+import com.astradia.VentoServer;
 import com.astradia.network.NetworkManager;
 import com.astradia.network.payloads.PlayerDataPayload;
 import com.astradia.store.PlayerDataStore;
@@ -26,7 +26,7 @@ public class PlayerManager {
     public void initialize() {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> onPlayerDisconnect(handler.getPlayer()));
         ServerPlayConnectionEvents.JOIN.register(((serverPlayNetworkHandler, packetSender, minecraftServer) -> onPlayerConnect(serverPlayNetworkHandler.getPlayer())));
-        AstradiaServer.LOGGER.info("[PlayerManager] Inicializado y escuchando eventos de conexión/desconexión.");
+        VentoServer.LOGGER.info("[PlayerManager] Inicializado y escuchando eventos de conexión/desconexión.");
     }
 
     /**
@@ -53,7 +53,7 @@ public class PlayerManager {
     public void instantiatePlayer(UUID player) {
         PlayerData playerData = new PlayerData(player);
         players.put(player, playerData);
-        AstradiaServer.LOGGER.debug("[PlayerManager] PlayerData creado en memoria para UUID {}.", player);
+        VentoServer.LOGGER.debug("[PlayerManager] PlayerData creado en memoria para UUID {}.", player);
     }
 
     /**
@@ -62,9 +62,9 @@ public class PlayerManager {
      */
     private void onPlayerDisconnect(ServerPlayerEntity player) {
         UUID uuid = player.getUuid();
-        AstradiaServer.LOGGER.info("[PlayerManager] Jugador {} (UUID {}) se desconectó. Guardando y removiendo datos...", player.getName().getString(), uuid);
+        VentoServer.LOGGER.info("[PlayerManager] Jugador {} (UUID {}) se desconectó. Guardando y removiendo datos...", player.getName().getString(), uuid);
         // TODO: guardar PlayerData en la base de datos de manera asíncrona.
-        store.saveAll(uuid, getFromPlayer(player));
+        store.save(uuid, getFromPlayer(player));
     }
 
     /**
@@ -73,14 +73,14 @@ public class PlayerManager {
      */
     private void onPlayerConnect(ServerPlayerEntity player) {
         UUID uuid = player.getUuid();
-        AstradiaServer.LOGGER.info("[PlayerManager] Jugador {} (UUID {}) se conectó. Iniciando carga de datos...", player.getName().getString(), uuid);
+        VentoServer.LOGGER.info("[PlayerManager] Jugador {} (UUID {}) se conectó. Iniciando carga de datos...", player.getName().getString(), uuid);
 
         // cargar datos de BD
         PlayerData playerData = store.load(uuid);
         playerData.setLoading(false);
         players.put(uuid, playerData);
 
-        AstradiaServer.LOGGER.info("[PlayerData] Datos de {} cargados correctamente. Enviando información inicial a sí mismo y jugadores cercanos.", player.getName().getString());
+        VentoServer.LOGGER.info("[PlayerData] Datos de {} cargados correctamente. Enviando información inicial a sí mismo y jugadores cercanos.", player.getName().getString());
 
         sendToTrackingPlayersAndSelf(player);
     }
@@ -89,10 +89,10 @@ public class PlayerManager {
      * Evento: cuando un jugador comienza a trackear a otro.
      */
     public void onPlayerTracking(ServerPlayerEntity player, ServerPlayerEntity trackedPlayer) {
-        PlayerData trackedData = AstradiaServer.getPlayerManager().getFromPlayer(trackedPlayer);
+        PlayerData trackedData = VentoServer.getPlayerManager().getFromPlayer(trackedPlayer);
 
         if (trackedData.isLoading()) {
-            AstradiaServer.LOGGER.warn("[PlayerData] {} intentó trackear a {}, pero sus datos aún están cargando. Se ignorará.",
+            VentoServer.LOGGER.warn("[PlayerData] {} intentó trackear a {}, pero sus datos aún están cargando. Se ignorará.",
                     player.getName().getString(), trackedPlayer.getName().getString());
             return;
         }
@@ -107,7 +107,7 @@ public class PlayerManager {
         PlayerData playerData = getFromPlayer(source);
         NetworkManager.sendToPlayer(target, new PlayerDataPayload(playerData.toJson().toString()));
 
-        AstradiaServer.LOGGER.debug("[PlayerData] Enviando datos de {} -> {}.", source.getName().getString(), target.getName().getString());
+        VentoServer.LOGGER.debug("[PlayerData] Enviando datos de {} -> {}.", source.getName().getString(), target.getName().getString());
     }
 
     /**
@@ -129,9 +129,9 @@ public class PlayerManager {
         Collection<ServerPlayerEntity> trackingPlayers = PlayerLookup.tracking(player);
         for (ServerPlayerEntity serverPlayerEntity : trackingPlayers) {
             ServerPlayNetworking.send(serverPlayerEntity, payload);
-            AstradiaServer.LOGGER.debug("[PlayerData] Enviando datos de {} -> {}.", player.getName().getString(), serverPlayerEntity.getName().getString());
+            VentoServer.LOGGER.debug("[PlayerData] Enviando datos de {} -> {}.", player.getName().getString(), serverPlayerEntity.getName().getString());
         }
-        AstradiaServer.LOGGER.info("[PlayerData] Datos de {} enviados a {} jugadores en rango ({} incluido: {}).",
+        VentoServer.LOGGER.info("[PlayerData] Datos de {} enviados a {} jugadores en rango ({} incluido: {}).",
                 player.getName().getString(),
                 trackingPlayers.size(),
                 player.getName().getString(),

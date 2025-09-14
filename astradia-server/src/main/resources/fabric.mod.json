@@ -16,7 +16,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.astradia.AstradiaServer"
+          "com.astradia.VentoServer"
 		]
 	},
 	"mixins": [
