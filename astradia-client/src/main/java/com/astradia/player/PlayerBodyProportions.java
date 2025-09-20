@@ -10,7 +10,7 @@ public class PlayerBodyProportions extends PlayerFeature {
 
     public PlayerBodyProportions(UUID uuid) {
         super("proportions", uuid);
-        bodyProportionsConfig = BodyProportionsConfig.createDefaultConfig();
+        bodyProportionsConfig = null;
     }
 
     @Override

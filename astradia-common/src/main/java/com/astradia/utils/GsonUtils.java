@@ -14,11 +14,9 @@ public class GsonUtils {
     public static Gson GSON = new GsonBuilder()
             .registerTypeAdapter(Identifier.class, new TypeAdapter<Identifier>() {
                 public void write(JsonWriter out, Identifier id) throws IOException {
-                    System.out.println("WRITE: " + id.toString());
                     out.value(id.toString()); }
                 public Identifier read(JsonReader in) throws IOException {
                     String v = in.nextString();
-                    System.out.println("READ: " + v);
                     return Identifier.of(v); }
             })
             .registerTypeAdapter(CosmeticProperty.class, new CosmeticProperty.Serializer())

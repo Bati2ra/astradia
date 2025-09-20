@@ -1,5 +1,6 @@
 package com.astradia.player;
 
+import com.astradia.BodyProportionsConfigLoader;
 import com.astradia.api.player.BodyPartProportion;
 import com.astradia.api.player.BodyProportionsConfig;
 import com.google.gson.JsonObject;
@@ -12,7 +13,7 @@ public class PlayerBodyProportions extends PlayerFeature {
 
     public PlayerBodyProportions(UUID uuid) {
         super("proportions", uuid);
-        config = BodyProportionsConfig.createDefaultConfig();
+        config = BodyProportionsConfigLoader.CONFIG;
     }
 
     @Override
