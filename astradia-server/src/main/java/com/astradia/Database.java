@@ -12,7 +12,7 @@ import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 public class Database {
-    private static final String CONNECTION_STRING = "mongodb://localhost:27017"; // Cambia según sea necesario
+    private static final String CONNECTION_STRING = "mongodb://localhost:27017";
     private static final String DATABASE_NAME = "astradia";
 
     private static MongoClient mongoClient;

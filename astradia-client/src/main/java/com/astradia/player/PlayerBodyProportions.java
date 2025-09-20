@@ -1,6 +1,6 @@
 package com.astradia.player;
 
-import com.astradia.player.body.BodyProportionsConfig;
+import com.astradia.api.player.BodyProportionsConfig;
 import com.google.gson.JsonObject;
 
 import java.util.UUID;

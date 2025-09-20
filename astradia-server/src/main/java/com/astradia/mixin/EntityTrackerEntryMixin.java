@@ -1,7 +1,6 @@
 package com.astradia.mixin;
 
-import com.astradia.AstradiaServer;
-import com.astradia.player.PlayerData;
+import com.astradia.VentoServer;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.network.EntityTrackerEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -21,7 +20,7 @@ public abstract class EntityTrackerEntryMixin {
 	@Inject(method = "startTracking", at = @At("RETURN"))
 	private void onStartedTracking(ServerPlayerEntity player, CallbackInfo ci) {
 		if(entity instanceof ServerPlayerEntity trackedPlayer) {
-			AstradiaServer.getPlayerManager().onPlayerTracking(player, trackedPlayer);
+			VentoServer.getPlayerManager().onPlayerTracking(player, trackedPlayer);
 		}
 	}
 }

@@ -11,6 +11,7 @@ public class PlayerData implements IPlayerData {
     private PlayerState status;
     private boolean loading;
     private final PlayerCosmetics cosmetics;
+    private final PlayerBodyProportions proportions;
     protected final Map<Class<? extends PlayerFeature>, PlayerFeature> features;
 
     public PlayerData(UUID playerId) {
@@ -19,7 +20,9 @@ public class PlayerData implements IPlayerData {
         this.status = PlayerState.CONNECTING;
         this.loading = true;
         cosmetics = new PlayerCosmetics(playerId);
+        proportions = new PlayerBodyProportions(playerId);
         features.put(PlayerCosmetics.class, cosmetics);
+        features.put(PlayerBodyProportions.class, proportions);
     }
 
     public <T extends PlayerFeature> T getFeature(Class<T> featureClass) {
@@ -37,6 +40,10 @@ public class PlayerData implements IPlayerData {
 
     public PlayerCosmetics getCosmetics() {
         return cosmetics;
+    }
+
+    public PlayerBodyProportions getProportions() {
+        return proportions;
     }
 
     public void setStatus(PlayerState status) {
@@ -60,9 +67,5 @@ public class PlayerData implements IPlayerData {
         }
         json.add("features", jsonFeatures);
         return json;
-    }
-
-    public void fromJson(JsonObject json) {
-        // TODO
     }
 }

@@ -1,25 +1,15 @@
 package com.astradia.screen;
 
-import com.astradia.player.body.BodyPartProportion;
-import com.astradia.player.body.BodyProportionsConfig;
-import com.astradia.render.player.PlayerRenderer;
+import com.astradia.api.player.BodyPartProportion;
+import com.astradia.api.player.BodyProportionsConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.render.entity.state.EntityRenderState;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
-import org.jetbrains.annotations.Nullable;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
-import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 import java.util.EnumSet;
 import java.util.stream.Collectors;

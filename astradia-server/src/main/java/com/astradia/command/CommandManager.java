@@ -1,7 +1,7 @@
 package com.astradia.command;
 
-import com.astradia.AstradiaServer;
-import com.astradia.ServerCosmeticStore;
+import com.astradia.VentoServer;
+import com.astradia.store.ServerCosmeticStore;
 import com.astradia.enums.BodyPart;
 import com.astradia.enums.SlotType;
 import com.astradia.player.PlayerData;
@@ -41,7 +41,7 @@ public class CommandManager {
             .then(argument("player", EntityArgumentType.player())
                     .executes(context -> {
                         final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                        var result = AstradiaServer.getPlayerManager().getFromPlayer(player).getCosmetics().unlockAll();
+                        var result = VentoServer.getPlayerManager().getFromPlayer(player).getCosmetics().unlockAll();
                         context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);
                         return 1;
                     })
@@ -51,7 +51,7 @@ public class CommandManager {
                                 final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                                 final Integer value = IntegerArgumentType.getInteger(context, "id");
                                 try {
-                                    var result = AstradiaServer.getPlayerManager().getFromPlayer(player).getCosmetics().unlock(value);
+                                    var result = VentoServer.getPlayerManager().getFromPlayer(player).getCosmetics().unlock(value);
                                     context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);
                                 } catch(Exception exception) {
                                     exception.printStackTrace();
@@ -78,7 +78,7 @@ public class CommandManager {
                                     .executes(context -> {
                                         final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                                         final Identifier slot = Identifier.of(StringArgumentType.getString(context, "slot"));
-                                        AstradiaServer.getPlayerManager().getFromPlayer(player).getCosmetics().unequipCosmetic(slot);
+                                        VentoServer.getPlayerManager().getFromPlayer(player).getCosmetics().unequipCosmetic(slot);
 
                                         return 1;
                                     })
@@ -90,7 +90,7 @@ public class CommandManager {
                             .executes(context -> {
                                 final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                                 final String option = StringArgumentType.getString(context, "option");
-                                var cosmetics = AstradiaServer.getPlayerManager().getFromPlayer(player).getCosmetics();
+                                var cosmetics = VentoServer.getPlayerManager().getFromPlayer(player).getCosmetics();
                                 if(option.contentEquals("equipment")) {
                                     context.getSource().sendFeedback(() -> Text.literal(cosmetics.showEquipment()), false);
                                 }
@@ -98,7 +98,7 @@ public class CommandManager {
                                     context.getSource().sendFeedback(() -> Text.literal(cosmetics.showUnlockedCosmetics()), false);
                                 }
                                 if(option.contentEquals("network")) {
-                                    context.getSource().sendFeedback(() -> Text.literal(AstradiaServer.getPlayerManager().getFromPlayer(player).toJson().toString()), false);
+                                    context.getSource().sendFeedback(() -> Text.literal(VentoServer.getPlayerManager().getFromPlayer(player).toJson().toString()), false);
                                 }
                                 return 1;
                             })
@@ -142,11 +142,11 @@ public class CommandManager {
             context.getSource().sendFeedback(() -> Text.literal("El id especificado no pertenece a ningún cosmético"), false);
             return 0;
         }
-        PlayerData playerData = AstradiaServer.getPlayerManager().getFromPlayer(player);
+        PlayerData playerData = VentoServer.getPlayerManager().getFromPlayer(player);
         try {
             var result = playerData.getCosmetics().equipCosmetic(slot, cosmetic, nbt);
             if(playerData.getCosmetics().isDirty()) {
-                AstradiaServer.getPlayerManager().sendToTrackingPlayersAndSelf(player);
+                VentoServer.getPlayerManager().sendToTrackingPlayersAndSelf(player);
             }
             context.getSource().sendFeedback(() -> Text.literal(result.getMessage()), false);
         } catch (Exception e) {

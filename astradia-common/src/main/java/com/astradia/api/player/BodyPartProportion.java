@@ -1,4 +1,4 @@
-package com.astradia.player.body;
+package com.astradia.api.player;
 
 import java.util.EnumMap;
 import java.util.EnumSet;

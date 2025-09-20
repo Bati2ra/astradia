@@ -1,6 +1,6 @@
 package com.astradia.screen;
 
-import com.astradia.player.body.BodyPartProportion;
+import com.astradia.api.player.BodyPartProportion;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.SliderWidget;

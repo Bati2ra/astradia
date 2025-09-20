@@ -2,24 +2,20 @@ package com.astradia.render.player;
 
 import com.astradia.AstradiaClient;
 import com.astradia.player.PlayerBodyProportions;
-import com.astradia.player.body.BodyPartProportion;
-import com.astradia.player.body.BodyProportionsConfig;
+import com.astradia.api.player.BodyPartProportion;
+import com.astradia.api.player.BodyProportionsConfig;
 import com.astradia.render.GeoBoneAccessor;
 import com.astradia.render.PatchedArmorEntityModel;
 import com.astradia.render.layer.*;
 import com.astradia.utils.AstradiaPlayerEntityRenderState;
-import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.Pair;
-import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
-import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
-import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.MathHelper;
@@ -38,7 +34,6 @@ import software.bernie.geckolib.renderer.base.PerBoneRender;
 import software.bernie.geckolib.util.RenderUtil;
 
 import java.lang.Math;
-import java.util.List;
 import java.util.UUID;
 
 public class PlayerRenderer<T extends AbstractClientPlayerEntity & GeoAnimatable, R extends PlayerEntityRenderState & GeoRenderState> extends GeoEntityRenderer<T, R> {
