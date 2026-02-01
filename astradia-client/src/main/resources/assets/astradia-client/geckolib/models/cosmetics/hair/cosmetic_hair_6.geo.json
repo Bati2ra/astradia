@@ -1,0 +1,40 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.unknown",
+				"texture_width": 64,
+				"texture_height": 64,
+				"visible_bounds_width": 2,
+				"visible_bounds_height": 4.5,
+				"visible_bounds_offset": [0, 1.75, 0]
+			},
+			"bones": [
+				{
+					"name": "bipedHead",
+					"pivot": [0, 24, 0]
+				},
+				{
+					"name": "cosmetic_hair_6",
+					"parent": "bipedHead",
+					"pivot": [0, 31.5, 0],
+					"cubes": [
+						{
+							"origin": [0, 30, -8],
+							"size": [0, 11, 16],
+							"uv": {
+								"north": {"uv": [12, 38], "uv_size": [0, 8]},
+								"east": {"uv": [16, 37], "uv_size": [-16, 11]},
+								"south": {"uv": [24, 38], "uv_size": [0, 8]},
+								"west": {"uv": [0, 37], "uv_size": [16, 11]},
+								"up": {"uv": [12, 26], "uv_size": [0, 12]},
+								"down": {"uv": [12, 38], "uv_size": [0, -12]}
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

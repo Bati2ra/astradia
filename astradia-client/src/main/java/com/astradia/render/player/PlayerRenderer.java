@@ -1,8 +1,8 @@
 package com.astradia.render.player;
 
 import com.astradia.AstradiaClient;
+import com.astradia.api.player.BodyProportionValues;
 import com.astradia.player.PlayerBodyProportions;
-import com.astradia.api.player.BodyPartProportion;
 import com.astradia.api.player.BodyProportionsConfig;
 import com.astradia.render.GeoBoneAccessor;
 import com.astradia.render.PatchedArmorEntityModel;
@@ -73,6 +73,7 @@ public class PlayerRenderer<T extends AbstractClientPlayerEntity & GeoAnimatable
         this.original = original;
         thin = thinArms;
 
+        addRenderLayer(new CosmeticLayer<>(this, original));
         addRenderLayer(new GeckoArmorLayer<>(this, new PatchedArmorEntityModel<>(this, context.getPart(thinArms ? EntityModelLayers.PLAYER_SLIM_INNER_ARMOR : EntityModelLayers.PLAYER_INNER_ARMOR)), new PatchedArmorEntityModel<>(this, context.getPart(thinArms ? EntityModelLayers.PLAYER_SLIM_OUTER_ARMOR : EntityModelLayers.PLAYER_OUTER_ARMOR)), context.getEquipmentRenderer()));
         addRenderLayer(new GeckoPlayerHeldItemLayer<>(this));
         addRenderLayer(new GeckoHeadLayer<>(this, context.getEntityModels()));
@@ -264,46 +265,48 @@ public class PlayerRenderer<T extends AbstractClientPlayerEntity & GeoAnimatable
     private void copyOriginalRotations(R state) {
         UUID uuid = ((AstradiaPlayerEntityRenderState) state).getUuid();
         PlayerBodyProportions playerProportions = AstradiaClient.getPlayerManager().getFromUuid(uuid).getProportions();
-        BodyProportionsConfig config = playerProportions.getConfig();
+        BodyProportionValues config = playerProportions.getValues();
 
-        float headXYZ = config.head.getValue(BodyPartProportion.Axis.X);
-        float bodyXZ = config.torso.getValue(BodyPartProportion.Axis.X),
-                bodyY = config.torso.getValue(BodyPartProportion.Axis.Y);
-        float rightArmXZ = config.rightArm.getValue(BodyPartProportion.Axis.X),
-                rightArmY = config.rightArm.getValue(BodyPartProportion.Axis.Y);
-        float leftArmXZ = config.leftArm.getValue(BodyPartProportion.Axis.X),
-                leftArmY = config.leftArm.getValue(BodyPartProportion.Axis.Y);
-        float rightLegXZ = config.rightLeg.getValue(BodyPartProportion.Axis.X),
-                rightLegY = config.rightLeg.getValue(BodyPartProportion.Axis.Y);
-        float leftLegXZ = config.leftLeg.getValue(BodyPartProportion.Axis.X),
-                leftLegY = config.leftLeg.getValue(BodyPartProportion.Axis.Y);
-        float width = config.width.getValue(BodyPartProportion.Axis.X);
-        float height = config.height.getValue(BodyPartProportion.Axis.Y);
+        float head = config.getParameterById("head.scale");
+        float bodyWidth = config.getParameterById("torso.width");
+        float bodyHeight = config.getParameterById("torso.height");
+        float rightArmWidth = config.getParameterById("rightArm.width");
+        float rightArmHeight = config.getParameterById("rightArm.length");
+        float leftArmWidth = config.getParameterById("leftArm.width");
+        float leftArmHeight = config.getParameterById("leftArm.length");
+        float rightLegWidth = config.getParameterById("rightLeg.width");
+        float rightLegHeight = config.getParameterById("rightLeg.length");
+        float leftLegWidth = config.getParameterById("leftLeg.width");
+        float leftLegHeight = config.getParameterById("leftLeg.length");
+        float width = config.getParameterById("global.width");
+        float height = config.getParameterById("global.height");
 
-        var bodyVerticalOffset = (bodyY - 1.0f) * 12;
-        float legDeltaY  = (Math.max(rightLegY, leftLegY)  - 1.0f) * 12;
+
+
+        var bodyVerticalOffset = (bodyHeight - 1.0f) * 12;
+        float legDeltaY  = (Math.max(rightLegHeight, leftLegHeight)  - 1.0f) * 12;
         root.setPosY(bodyVerticalOffset + legDeltaY);
 
         root.updateScale(width, height, width);
-        head.updateScale(headXYZ, headXYZ, headXYZ);
-        body.updateScale(bodyXZ, bodyY, bodyXZ);
-        rightArmPh.updateScale(rightArmXZ, rightArmY, rightArmXZ);
-        leftArmPh.updateScale(leftArmXZ, leftArmY, leftArmXZ);
-        rightLeg.updateScale(rightLegXZ, rightLegY, rightLegXZ);
-        leftLeg.updateScale(leftLegXZ, leftLegY, leftLegXZ);
+        this.head.updateScale(head, head, head);
+        body.updateScale(bodyWidth, bodyHeight, bodyWidth);
+        rightArmPh.updateScale(rightArmWidth, rightArmHeight, rightArmWidth);
+        leftArmPh.updateScale(leftArmWidth, leftArmHeight, leftArmWidth);
+        rightLeg.updateScale(rightLegWidth, rightLegHeight, rightLegWidth);
+        leftLeg.updateScale(leftLegWidth, leftLegHeight, leftLegWidth);
 
         var originalModel = original.getModel();
-        head.updatePosition(originalModel.head.originX, -originalModel.head.originY, originalModel.head.originZ);
+        this.head.updatePosition(originalModel.head.originX, -originalModel.head.originY, originalModel.head.originZ);
         RenderUtil.matchModelPartRot(originalModel.head, this.head);
 
         body.updatePosition(originalModel.body.originX, -originalModel.body.originY, originalModel.body.originZ);
         RenderUtil.matchModelPartRot(originalModel.body, this.body);
 
-        rightArm.updatePosition(originalModel.rightArm.originX + 5.0F + (bodyXZ - 1.0f) * -4, 2.0F - originalModel.rightArm.originY, originalModel.rightArm.originZ);
+        rightArm.updatePosition(originalModel.rightArm.originX + 5.0F + (bodyWidth - 1.0f) * -4, 2.0F - originalModel.rightArm.originY, originalModel.rightArm.originZ);
         RenderUtil.matchModelPartRot(originalModel.rightArm, this.rightArm);
 
         RenderUtil.matchModelPartRot(originalModel.leftArm, this.leftArm);
-        leftArm.updatePosition(originalModel.leftArm.originX - 5.0F + (bodyXZ - 1.0f) * 4, 2.0F - originalModel.leftArm.originY, originalModel.leftArm.originZ);
+        leftArm.updatePosition(originalModel.leftArm.originX - 5.0F + (bodyWidth - 1.0f) * 4, 2.0F - originalModel.leftArm.originY, originalModel.leftArm.originZ);
 
         leftLeg.updatePosition(originalModel.leftLeg.originX - 2.0F, 12.0F - originalModel.leftLeg.originY - bodyVerticalOffset, originalModel.leftLeg.originZ);
         RenderUtil.matchModelPartRot(originalModel.leftLeg, this.leftLeg);

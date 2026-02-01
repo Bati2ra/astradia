@@ -1,6 +1,6 @@
 package com.astradia.screen;
 
-import com.astradia.api.player.BodyPartProportion;
+import com.astradia.api.player.BodyProportionValues;
 import com.astradia.api.player.BodyProportionsConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -15,10 +15,10 @@ import java.util.EnumSet;
 import java.util.stream.Collectors;
 
 public class ProportionsScreen extends Screen {
-    private final BodyProportionsConfig config;
+    private final BodyProportionValues config;
     private final PlayerEntity previewPlayer;
 
-    public ProportionsScreen(BodyProportionsConfig config, MinecraftClient client) {
+    public ProportionsScreen(BodyProportionValues config, MinecraftClient client) {
         super(Text.of("Body Proportions Editor"));
         this.config = config;
         this.previewPlayer = client.player; // o un clon si querés evitar side effects
@@ -28,7 +28,7 @@ public class ProportionsScreen extends Screen {
     protected void init() {
         int y = 20;
         int spacing = 14;
-
+/*
         for (var entry : config.getAllParts().entrySet()) {
             String partName = entry.getKey();
             BodyPartProportion part = entry.getValue();
@@ -73,7 +73,7 @@ public class ProportionsScreen extends Screen {
                         }
                     }
                 }
-        ).dimensions(20, y + 10, 150, 20).build());
+        ).dimensions(20, y + 10, 150, 20).build());*/
     }
 
     @Override

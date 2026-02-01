@@ -8,4 +8,5 @@ public class AstradiaConstants {
     public static final Identifier COSMETICS_DATA_ID = Identifier.of("astradia", "cosmetics_data");
     public static final Identifier PLAYER_READY_ID = Identifier.of("astradia", "player_ready");
 
+    public static final Identifier BODY_PROPORTIONS_DATA_ID = Identifier.of("astradia", "body_proportions_data");
 }

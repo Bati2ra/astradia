@@ -35,29 +35,37 @@ public class ServerCosmeticStore extends CosmeticStore<CosmeticInfo> {
 
             @Override
             public void reload(ResourceManager manager) {
-                VentoServer.LOGGER.info("{} Reloading cosmetic definitions from data packs...", LOG_PREFIX);
-                cosmetics.clear();
-
-                var resources = manager.findResources("cosmetics", path -> path.toString().endsWith(".json"));
-                VentoServer.LOGGER.info("{} Found {} cosmetic JSON files.", LOG_PREFIX, resources.size());
-                for(Map.Entry<Identifier, Resource> resourceEntry : resources.entrySet()) {
-                    try(InputStream stream = resourceEntry.getValue().getInputStream();
-                        InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)
-                    ) {
-                        JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
-                        CosmeticInfo cosmetic = new CosmeticInfo(json);
-                        cosmetics.put(cosmetic.getId(), cosmetic);
-                        VentoServer.LOGGER.info("{} Registered cosmetic '{}' ({})", LOG_PREFIX, cosmetic.getName(), cosmetic.getId());
-                    } catch(Exception e) {
-                        VentoServer.LOGGER.error("{} Failed to load cosmetic JSON '{}'", LOG_PREFIX, resourceEntry.getKey());
-                        VentoServer.LOGGER.debug("{} Exception: {}", LOG_PREFIX, e);
-                    }
-                }
-                cachedSerializedCosmetics = getSerializedCosmetics();
-                VentoServer.LOGGER.info("{} Cosmetic registry updated. Total cosmetics: {}", LOG_PREFIX, cosmetics.size());
+                onReload(manager);
             }
         });
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayer, joined) -> sendToPlayer(serverPlayer));
+    }
+
+    private void onReload(ResourceManager manager) {
+        VentoServer.LOGGER.info("{} Reloading cosmetic definitions from data packs...", LOG_PREFIX);
+        cosmetics.clear();
+
+        var resources = manager.findResources("cosmetics", path -> path.toString().endsWith(".json"));
+        VentoServer.LOGGER.info("{} Found {} cosmetic JSON files.", LOG_PREFIX, resources.size());
+        for(Map.Entry<Identifier, Resource> resourceEntry : resources.entrySet()) {
+            try(InputStream stream = resourceEntry.getValue().getInputStream();
+                InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)
+            ) {
+                JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+                CosmeticInfo cosmetic = new CosmeticInfo(json);
+                if(cosmetics.containsKey(cosmetic.getId())) {
+                    VentoServer.LOGGER.info("{} Duplicated cosmetic ID '{}' ({}), skipping...", LOG_PREFIX, cosmetic.getName(), cosmetic.getId());
+                    continue;
+                }
+                cosmetics.put(cosmetic.getId(), cosmetic);
+                VentoServer.LOGGER.info("{} Registered cosmetic '{}' ({})", LOG_PREFIX, cosmetic.getName(), cosmetic.getId());
+            } catch(Exception e) {
+                VentoServer.LOGGER.error("{} Failed to load cosmetic JSON '{}'", LOG_PREFIX, resourceEntry.getKey());
+                VentoServer.LOGGER.debug("{} Exception: {}", LOG_PREFIX, e);
+            }
+        }
+        cachedSerializedCosmetics = getSerializedCosmetics();
+        VentoServer.LOGGER.info("{} Cosmetic registry updated. Total cosmetics: {}", LOG_PREFIX, cosmetics.size());
     }
 
     public void sendToPlayer(ServerPlayerEntity player) {

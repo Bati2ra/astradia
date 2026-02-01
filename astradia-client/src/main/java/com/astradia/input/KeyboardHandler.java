@@ -16,7 +16,7 @@ public class KeyboardHandler {
         }
 
         if(i == 0 && key == GLFW.GLFW_KEY_V) {
-            MinecraftClient.getInstance().setScreen(new ProportionsScreen(AstradiaClient.getPlayerManager().getFromUuid(MinecraftClient.getInstance().player.getUuid()).getProportions().getConfig(), MinecraftClient.getInstance()));
+            MinecraftClient.getInstance().setScreen(new ProportionsScreen(AstradiaClient.getPlayerManager().getFromUuid(MinecraftClient.getInstance().player.getUuid()).getProportions().getValues(), MinecraftClient.getInstance()));
         }
     }
 

@@ -24,7 +24,7 @@ public class AstradiaClient implements ModInitializer {
 
 		LivingEntityFeatureRendererRegistrationCallback.EVENT.register((entityType, entityRenderer, registrationHelper, context) -> {
 			if(entityRenderer instanceof PlayerEntityRenderer renderer) {
-				registrationHelper.register(new CosmeticLayer(renderer));
+				//registrationHelper.register(new CosmeticLayer(renderer));
 			}
 		});
 		//ClientPlayerManager.INSTANCE.initialize();

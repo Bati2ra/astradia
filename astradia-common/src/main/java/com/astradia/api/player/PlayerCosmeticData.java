@@ -3,7 +3,13 @@ package com.astradia.api.player;
 import com.astradia.CosmeticStore;
 import com.astradia.api.CosmeticInfo;
 import com.astradia.api.CosmeticProperty;
+import com.astradia.api.CosmeticPropertyRegistry;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.util.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +26,7 @@ public class PlayerCosmeticData {
      * Mapa que vincula cada tipo de propiedad que tenga datos de jugador
      * con la instancia concreta de PlayerData para este jugador.
      */
-    private final Map<Class<? extends CosmeticProperty.PlayerData>, CosmeticProperty.PlayerData> typeData;
+    private final Map<Class<? extends CosmeticProperty<?>>, CosmeticProperty.PlayerData> typeData;
 
     /**
      * Constructor estándar.
@@ -30,22 +36,7 @@ public class PlayerCosmeticData {
     public PlayerCosmeticData(CosmeticInfo cosmetic) {
         this.cosmeticInfo = cosmetic;
         typeData = new HashMap<>();
-        for (CosmeticProperty<?> property : cosmetic.getProperties().values()) {
-            Class<? extends CosmeticProperty.PlayerData> dataClass = property.getPlayerDataClass();
-            if (dataClass != null) {
-                if(dataClass.equals(CosmeticProperty.PlayerData.class)) continue;
-
-                try {
-                    // Crear instancia por defecto de PlayerData
-                    typeData.put(dataClass, property.createPlayerData());
-                } catch (Exception e) {
-                    throw new RuntimeException(
-                            "No se pudo instanciar PlayerData para la propiedad '" + property + "' del cosmético '" + cosmetic.getName() + "'",
-                            e
-                    );
-                }
-            }
-        }
+        initializeWithDefaultValues(cosmeticInfo);
     }
 
     /**
@@ -58,39 +49,80 @@ public class PlayerCosmeticData {
      * @throws Exception si hay discrepancias en los datos o formato incorrecto
      */
     public PlayerCosmeticData(CosmeticStore<? extends CosmeticInfo> store, JsonObject json) throws Exception {
-        cosmeticInfo = store.get(json.get("id").getAsInt());
+        String stringId = json.get("id").getAsString();
+        Identifier cosmeticId = Identifier.of(stringId);
         typeData = new HashMap<>();
-        JsonObject jsonProperties = json.getAsJsonObject("properties");
-        for (CosmeticProperty<?> property : cosmeticInfo.getProperties().values()) {
-            Class<? extends CosmeticProperty.PlayerData> dataClass = property.getPlayerDataClass();
-            if(dataClass == null) {
-                throw new Exception(
-                        "No se encontró la clase PlayerData para la propiedad '" + property + "' del cosmético '" + cosmeticInfo.getName() + "'"
+        cosmeticInfo = store.get(cosmeticId);
+        if(cosmeticInfo == null) {
+            throw new Exception(
+                    "No se encontró el cosmético '" + stringId + "' en el registro. '"
+            );
+        }
+        initializeWithJsonValues(cosmeticInfo, json);
+
+    }
+
+    private void initializeWithDefaultValues(CosmeticInfo cosmeticInfo) {
+        var properties = cosmeticInfo.getProperties();
+        properties.forEach((propertyKey, property) -> {
+            var playerDataClazz = property.getPlayerDataClass();
+            if(playerDataClazz == null || playerDataClazz.equals(CosmeticProperty.PlayerData.class)) return;
+
+            var playerData = property.createPlayerData();
+            if(playerData == null) {
+                throw new RuntimeException(
+                        "No se pudo instanciar PlayerData para la propiedad '" + property + "' del cosmético '" + cosmeticInfo.getName() + "'"
                 );
             }
-            if(dataClass.equals(CosmeticProperty.PlayerData.class)) {
-                continue;
-            }
-            CosmeticProperty.PlayerData dataInstance = property.createPlayerData();
-            if(!jsonProperties.has(dataClass.getName())) {
-                throw new Exception(
-                        "Formato JSON incorrecto: falta PlayerData '" + dataClass.getName() +
-                                "' para el cosmético '" + cosmeticInfo.getName() + "'"
+            typeData.put(propertyKey, playerData);
+        });
+    }
+
+    private void initializeWithJsonValues(CosmeticInfo cosmeticInfo, JsonObject from) throws Exception {
+        var properties = cosmeticInfo.getProperties();
+        for (Map.Entry<Class<? extends CosmeticProperty<?>>, CosmeticProperty<?>> entry : properties.entrySet()) {
+            var propertyKey = entry.getKey();
+            var property = entry.getValue();
+            var playerDataClazz = property.getPlayerDataClass();
+            if(playerDataClazz == null || playerDataClazz.equals(CosmeticProperty.PlayerData.class)) continue;
+
+            var playerData = property.createPlayerData();
+            if(playerData == null) {
+                throw new RuntimeException(
+                        "No se pudo instanciar PlayerData para la propiedad '" + property + "' del cosmético '" + cosmeticInfo.getName() + "'"
                 );
             }
-            JsonObject dataJson = jsonProperties.getAsJsonObject(dataClass.getName());
-            try {
-                dataInstance.fromJson(dataJson);
-            } catch (Exception e) {
+            var optionalKey = CosmeticPropertyRegistry.getTypeByClass(propertyKey);
+            if(optionalKey.isPresent()) {
+                var key = optionalKey.get();
+                JsonObject jsonProperties = from.getAsJsonObject("properties");
+                if(!jsonProperties.has(key)) {
+                    throw new Exception(
+                            "Formato JSON incorrecto: falta PlayerData '" + key +
+                                    "' para el cosmético '" + cosmeticInfo.getName() + "'"
+                    );
+                }
+                JsonObject dataJson = jsonProperties.getAsJsonObject(key);
+                playerData.fromJson(dataJson);
+                typeData.put(propertyKey, playerData);
+            } else {
                 throw new Exception(
-                        "Error al deserializar PlayerData '" + dataClass.getName() +
-                                "' para el cosmético '" + cosmeticInfo.getName() + "': " + e.getMessage(), e
+                        "No se puso encontrar la llave asignada a '" + propertyKey.getName()
                 );
             }
-            typeData.put(dataClass, dataInstance);
         }
     }
 
+    public void fromNbt(NbtCompound nbt) {
+        JsonObject json = new JsonObject();
+        var jsonProperties = NbtOps.INSTANCE.convertTo(JsonOps.INSTANCE, nbt).getAsJsonObject();
+        json.add("properties", jsonProperties);
+        try {
+            initializeWithJsonValues(cosmeticInfo, json);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
     /**
      * Serializa todos los PlayerData de este jugador a JSON.
      * @return JsonObject representando todos los datos de jugador para este cosmético.
@@ -99,11 +131,11 @@ public class PlayerCosmeticData {
         JsonObject json = new JsonObject();
         JsonObject jsonProperties = new JsonObject();
 
-        json.addProperty("id", cosmeticInfo.getId());
-        for (Map.Entry<Class<? extends CosmeticProperty.PlayerData>, CosmeticProperty.PlayerData> entry : typeData.entrySet()) {
+        json.addProperty("id", cosmeticInfo.getId().toString());
+        for (Map.Entry<Class<? extends CosmeticProperty<?>>, CosmeticProperty.PlayerData> entry : typeData.entrySet()) {
             JsonObject dataJson = entry.getValue().toJson();
             if (dataJson != null) {
-                String propertyKey = entry.getKey().getName();
+                String propertyKey = CosmeticPropertyRegistry.getTypeByClass(entry.getKey()).get();
                 jsonProperties.add(propertyKey, dataJson);
             }
         }
@@ -122,7 +154,7 @@ public class PlayerCosmeticData {
      * @param <T> Tipo genérico que extiende PlayerData
      * @return Optional con la instancia si existe, vacío si no
      */
-    public <T extends CosmeticProperty.PlayerData> Optional<T> getTypeData(Class<T> typeClass) {
-        return Optional.ofNullable(typeClass.cast(typeData.get(typeClass)));
+    public <R extends CosmeticProperty<?>, T extends CosmeticProperty.PlayerData> Optional<T> getTypeData(Class<R> clazz, Class<T> typeClass) {
+        return Optional.ofNullable(typeClass.cast(typeData.get(clazz)));
     }
 }

@@ -1,8 +1,8 @@
 package com.astradia.render.layer;
 
 import com.astradia.AstradiaClient;
+import com.astradia.api.player.BodyProportionValues;
 import com.astradia.player.PlayerBodyProportions;
-import com.astradia.api.player.BodyPartProportion;
 import com.astradia.api.player.BodyProportionsConfig;
 import com.astradia.render.player.PlayerRenderer;
 import com.astradia.utils.AstradiaPlayerEntityRenderState;
@@ -46,10 +46,13 @@ public class GeckoPlayerHeldItemLayer<T extends LivingEntity & GeoAnimatable, O,
                 var itemBone = arm.equals(Arm.RIGHT) ? playerRenderer.rightHandItem : playerRenderer.leftHandItem;
                 UUID uuid = ((AstradiaPlayerEntityRenderState) playerEntityRenderState).getUuid();
                 PlayerBodyProportions playerProportions = AstradiaClient.getPlayerManager().getFromUuid(uuid).getProportions();
-                BodyProportionsConfig config = playerProportions.getConfig();
-                BodyPartProportion partProportion = arm.equals(Arm.RIGHT) ? config.rightArm : config.leftArm;
-                var scaleXZ = partProportion.getValue(BodyPartProportion.Axis.X) * config.width.getValue(BodyPartProportion.Axis.X);
-                var scaleY = partProportion.getValue(BodyPartProportion.Axis.Y) * config.height.getValue(BodyPartProportion.Axis.Y);
+                BodyProportionValues config = playerProportions.getValues();
+                float armWidth = arm.equals(Arm.RIGHT) ? config.getParameterById("rightArm.width") : config.getParameterById("leftArm.width");
+                float armHeight = arm.equals(Arm.RIGHT) ? config.getParameterById("rightArm.length") : config.getParameterById("leftArm.length");
+                float width = config.getParameterById("global.width");
+                float height = config.getParameterById("global.height");
+                var scaleXZ = armWidth * width;
+                var scaleY = armHeight * height;
                 Vector3f inverseScale = new Vector3f(1.0f / scaleXZ,
                         1.0f / scaleY,
                         1.0f / scaleXZ);
@@ -73,11 +76,13 @@ public class GeckoPlayerHeldItemLayer<T extends LivingEntity & GeoAnimatable, O,
         var itemBone = arm.equals(Arm.RIGHT) ? playerRenderer.rightHandItem : playerRenderer.leftHandItem;
         UUID uuid = ((AstradiaPlayerEntityRenderState) playerEntityRenderState).getUuid();
         PlayerBodyProportions playerProportions = AstradiaClient.getPlayerManager().getFromUuid(uuid).getProportions();
-        BodyProportionsConfig config = playerProportions.getConfig();
-        BodyPartProportion partProportion = arm.equals(Arm.RIGHT) ? config.rightArm : config.leftArm;
-        Vector3f inverseScale = new Vector3f(1.0f / partProportion.getValue(BodyPartProportion.Axis.X),
-                1.0f / partProportion.getValue(BodyPartProportion.Axis.Y),
-                1.0f / partProportion.getValue(BodyPartProportion.Axis.X));
+        BodyProportionValues config = playerProportions.getValues();
+        float armWidth = arm.equals(Arm.RIGHT) ? config.getParameterById("rightArm.width") : config.getParameterById("leftArm.width");
+        float armHeight = arm.equals(Arm.RIGHT) ? config.getParameterById("rightArm.height") : config.getParameterById("leftArm.height");
+
+        Vector3f inverseScale = new Vector3f(1.0f / armWidth,
+                1.0f / armHeight,
+                1.0f / armWidth);
 
         Matrix4f scaledMatrix = itemBone.getWorldSpaceMatrix();
         Matrix4f unscaledMatrix = new Matrix4f(scaledMatrix);

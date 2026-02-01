@@ -1,14 +1,13 @@
 package com.astradia;
 
-import com.astradia.api.player.BodyPartProportion;
 import com.astradia.api.player.BodyProportionsConfig;
+import com.astradia.api.player.ScaleParameter;
 import com.astradia.utils.GsonUtils;
 import com.google.gson.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Function;
 
 public class BodyProportionsConfigLoader {
     private static final String LOG_PREFIX = "[BodyProportionsLoader]";
@@ -48,167 +47,135 @@ public class BodyProportionsConfigLoader {
         return fromJson(json);
     }
 
-    private static BodyProportionsConfig fromJson(JsonObject root) {
-        Map<String, BodyPartProportion> cache = new HashMap<>();
+    public static BodyProportionsConfig fromJson(JsonObject json) {
+        BodyProportionsConfig config = new BodyProportionsConfig();
 
-        Function<String, BodyPartProportion> resolve = name -> {
-            JsonElement node = root.get(name);
-            if (node.isJsonPrimitive() && node.getAsString().startsWith("@")) {
-                String ref = node.getAsString().substring(1);
-                return cache.get(ref);
-            }
+        JsonObject paramsObj = json.getAsJsonObject("parameters");
+        if (paramsObj == null) {
+            return config;
+        }
+        List<ScaleParameter> parameters = new ArrayList<>();
+        for (String key : paramsObj.keySet()) {
+            JsonObject paramJson = paramsObj.getAsJsonObject(key);
 
-            JsonObject obj = node.getAsJsonObject();
-
-            EnumSet<BodyPartProportion.Axis> linkedAxes = parseLinkedAxes(obj.get("linked").getAsString());
-            Map<BodyPartProportion.Axis, BodyPartProportion.Range> ranges = parseRanges(obj.getAsJsonObject("range"), linkedAxes);
-            Map<BodyPartProportion.Axis, Float> values = parseValues(obj.getAsJsonObject("value"), linkedAxes);
-
-            BodyPartProportion part = new BodyPartProportion(linkedAxes, ranges, values);
-            cache.put(name, part);
-            return part;
-        };
-
-        return new BodyProportionsConfig(
-                resolve.apply("head"),
-                resolve.apply("torso"),
-                resolve.apply("leftArm"),
-                resolve.apply("rightArm"),
-                resolve.apply("leftLeg"),
-                resolve.apply("rightLeg"),
-                resolve.apply("width"),
-                resolve.apply("height")
-        );
+            ScaleParameter param = GsonUtils.GSON.fromJson(paramJson, ScaleParameter.class);
+            param.id = key;
+            parameters.add(param);
+        }
+        config.initialize(parameters);
+        return config;
     }
 
-    private static EnumSet<BodyPartProportion.Axis> parseLinkedAxes(String raw) {
-        EnumSet<BodyPartProportion.Axis> set = EnumSet.noneOf(BodyPartProportion.Axis.class);
-        for (char c : raw.toLowerCase().toCharArray()) {
-            switch (c) {
-                case 'x' -> set.add(BodyPartProportion.Axis.X);
-                case 'y' -> set.add(BodyPartProportion.Axis.Y);
-                case 'z' -> set.add(BodyPartProportion.Axis.Z);
-            }
-        }
-        return set;
-    }
+    public JsonObject toJson() {
+        JsonObject root = new JsonObject();
+        JsonObject paramsObj = new JsonObject();
 
-    private static Map<BodyPartProportion.Axis, BodyPartProportion.Range> parseRanges(JsonObject obj, EnumSet<BodyPartProportion.Axis> linkedAxes) {
-        Map<BodyPartProportion.Axis, BodyPartProportion.Range> map = new EnumMap<>(BodyPartProportion.Axis.class);
-        for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
-            EnumSet<BodyPartProportion.Axis> axes = parseLinkedAxes(entry.getKey());
-            JsonArray arr = entry.getValue().getAsJsonArray();
-            float min = arr.get(0).getAsFloat();
-            float max = arr.get(1).getAsFloat();
-            for (BodyPartProportion.Axis axis : axes) {
-                map.put(axis, new BodyPartProportion.Range(min, max));
-            }
+        for (var entry : CONFIG.getAll()) {
+            paramsObj.add(entry.id, GsonUtils.GSON.toJsonTree(entry));
         }
-        return map;
-    }
 
-    private static Map<BodyPartProportion.Axis, Float> parseValues(JsonObject obj, EnumSet<BodyPartProportion.Axis> linkedAxes) {
-        Map<BodyPartProportion.Axis, Float> map = new EnumMap<>(BodyPartProportion.Axis.class);
-        for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
-            EnumSet<BodyPartProportion.Axis> axes = parseLinkedAxes(entry.getKey());
-            float value = entry.getValue().getAsFloat();
-            for (BodyPartProportion.Axis axis : axes) {
-                map.put(axis, value);
-            }
-        }
-        return map;
+        root.add("parameters", paramsObj);
+        return root;
     }
 
     static {
         DEFAULT_BODY_PROPORTIONS_JSON = """
 {
-  "head": {
-    "linked": "xyz",
-    "range": {
-      "xyz": [
-        0.8,
-        1.2
-      ]
-    },
-    "value": {
-      "xyz": 1.0
-    }
-  },
-  "torso": {
-    "linked": "xz",
-    "range": {
-      "xz": [
-        0.6,
-        1.6
+  "parameters": {
+    "head.scale": {
+      "axes": [
+        "X",
+        "Y",
+        "Z"
       ],
-      "y": [
-        0.5,
-        1.5
-      ]
+      "min": 0.8,
+      "max": 1.2,
+      "value": 1.0
     },
-    "value": {
-      "xz": 1.0,
-      "y": 1.0
-    }
-  },
-  "leftArm": {
-    "linked": "xz",
-    "range": {
-      "xz": [
-        0.7,
-        1.2
+    "torso.width": {
+      "axes": [
+        "X",
+        "Z"
       ],
-      "y": [
-        0.5,
-        1.6
-      ]
+      "min": 0.6,
+      "max": 1.6,
+      "value": 1.0
     },
-    "value": {
-      "xz": 1.0,
-      "y": 1.0
-    }
-  },
-  "rightArm": "@leftArm",
-  "leftLeg": {
-    "linked": "xz",
-    "range": {
-      "xz": [
-        0.8,
-        1.2
+    "torso.height": {
+      "axes": [
+        "Y"
       ],
-      "y": [
-        0.5,
-        1.8
-      ]
+      "min": 0.5,
+      "max": 1.5,
+      "value": 1.0
     },
-    "value": {
-      "xz": 1.0,
-      "y": 1.0
-    }
-  },
-  "rightLeg": "@leftLeg",
-  "width": {
-    "linked": "xz",
-    "range": {
-      "xz": [
-        0.6,
-        1.6
-      ]
+    "leftArm.width": {
+      "axes": [
+        "X",
+        "Z"
+      ],
+      "min": 0.7,
+      "max": 1.2,
+      "value": 1.0
     },
-    "value": {
-      "xz": 1.0
-    }
-  },
-  "height": {
-    "linked": "y",
-    "range": {
-      "y": [
-        0.5,
-        2.0
-      ]
+    "leftArm.length": {
+      "axes": [
+        "Y"
+      ],
+      "min": 0.5,
+      "max": 1.6,
+      "value": 1.0
     },
-    "value": {
-      "y": 1.0
+    "rightArm.width": {
+      "axes": [
+        "X",
+        "Z"
+      ],
+      "min": 0.7,
+      "max": 1.2,
+      "value": 1.0
+    },
+    "rightArm.length": {
+      "axes": [
+        "Y"
+      ],
+      "min": 0.5,
+      "max": 1.6,
+      "value": 1.0
+    },
+    "leftLeg.width": {
+      "axes": [
+        "X",
+        "Z"
+      ],
+      "min": 0.8,
+      "max": 1.2,
+      "value": 1.0
+    },
+    "leftLeg.length": {
+      "axes": [
+        "Y"
+      ],
+      "min": 0.5,
+      "max": 1.8,
+      "value": 1.0
+    },
+    "rightLeg.width": {
+      "axes": [
+        "X",
+        "Z"
+      ],
+      "min": 0.8,
+      "max": 1.2,
+      "value": 1.0
+    },
+    "rightLeg.length": {
+      "axes": [
+        "Y"
+      ],
+      "min": 0.5,
+      "max": 1.8,
+      "value": 1.0
     }
   }
 }

@@ -2,6 +2,7 @@ package com.astradia.api;
 
 import com.astradia.utils.GsonUtils;
 import com.google.gson.*;
+import net.minecraft.nbt.NbtCompound;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -17,6 +18,10 @@ public abstract class CosmeticProperty<T extends CosmeticProperty.PlayerData> {
 
         default JsonObject toJson() { return null; };
         void fromJson(JsonObject json);
+        default NbtCompound toNbt() {
+            return new NbtCompound();
+        }
+        void fromNbt(NbtCompound nbt);
     }
 
     public T createPlayerData() { return null; };

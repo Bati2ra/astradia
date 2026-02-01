@@ -27,9 +27,18 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    implementation(project(path: ":astradia-common", configuration: "namedElements"))
+    def isDevRun = gradle.startParameter.taskNames.any {
+        it.contains("run")
+    }
 
-    //include(modImplementation(project(":astradia-common")))
+    if (isDevRun) {
+        implementation(project(path: ":astradia-common", configuration: "namedElements"))
+    } else {
+        include(modImplementation(project(":astradia-common")))
+    }
+
+
+//    include(modImplementation(project(":astradia-common")))
 
     include(modImplementation("software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"))
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"

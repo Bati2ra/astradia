@@ -1,6 +1,6 @@
 accessWidener v2 named
-transitive-extendable method software/bernie/geckolib/renderer/GeoEntityRenderer	getAndUpdateRenderState	(Lnet/minecraft/entity/Entity;F)Lnet/minecraft/client/render/entity/state/EntityRenderState;
 transitive-extendable method net/minecraft/client/render/entity/EntityRenderer getAndUpdateRenderState (Lnet/minecraft/entity/Entity;F)Lnet/minecraft/client/render/entity/state/EntityRenderState;
 extendable method net/minecraft/client/model/Model render (Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;III)V
 accessible field net/minecraft/client/render/entity/EntityRenderer state Lnet/minecraft/client/render/entity/state/EntityRenderState;
 mutable field net/minecraft/client/render/entity/EntityRenderer state Lnet/minecraft/client/render/entity/state/EntityRenderState;
+accessible field net/minecraft/client/render/WorldRenderer bufferBuilders Lnet/minecraft/client/render/BufferBuilderStorage;

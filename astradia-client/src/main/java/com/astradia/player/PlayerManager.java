@@ -42,6 +42,7 @@ public class PlayerManager {
 
     public void receiveServerPlayerData(JsonObject json) {
         PlayerData playerData = new PlayerData(json);
+        System.out.println(json.toString());
         players.put(playerData.getUuid(), playerData);
     }
 

@@ -1,5 +1,8 @@
 package com.astradia.pojo;
 
+import com.astradia.impl.AnimatableProperty;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.world.World;
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
@@ -8,6 +11,7 @@ import software.bernie.geckolib.animatable.processing.AnimationState;
 import software.bernie.geckolib.animatable.processing.AnimationTest;
 import software.bernie.geckolib.animation.*;
 import software.bernie.geckolib.util.GeckoLibUtil;
+import software.bernie.geckolib.util.RenderUtil;
 
 public class CosmeticAnimatable implements GeoAnimatable {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -24,7 +28,10 @@ public class CosmeticAnimatable implements GeoAnimatable {
     }
 
     protected <E extends GeoAnimatable> PlayState flyAnimController(final AnimationTest<E> animTest) {
-        if(true) return PlayState.STOP;
+        var property = cosmetic.getProperty(AnimatableProperty.class);
+        if(property.isPresent()) {
+            return animTest.setAndContinue(IDLE_ANIMATION);
+        }
 
         return PlayState.STOP;
     }
@@ -36,6 +43,16 @@ public class CosmeticAnimatable implements GeoAnimatable {
 
     @Override
     public double getTick(Object o) {
-        return 0;
+        World level = MinecraftClient.getInstance().world;
+        if (level == null) {
+            return 0;
+        }
+        double gameTicks = level.getTime();
+        double partialTick = MinecraftClient.getInstance().getRenderTime();
+        return RenderUtil.getCurrentTick();
+    }
+
+    public ClientCosmeticInfo getCosmetic() {
+        return cosmetic;
     }
 }

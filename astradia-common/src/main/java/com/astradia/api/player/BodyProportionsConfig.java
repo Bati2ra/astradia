@@ -1,48 +1,46 @@
 package com.astradia.api.player;
 
-import java.util.Map;
+import java.util.*;
 
 public class BodyProportionsConfig {
 
-    public BodyPartProportion head;
-    public BodyPartProportion torso;
-    public BodyPartProportion leftArm;
-    public BodyPartProportion rightArm;
-    public BodyPartProportion leftLeg;
-    public BodyPartProportion rightLeg;
-    public BodyPartProportion width;
-    public BodyPartProportion height;
+    private final HashMap<String, ScaleParameter> parameters;
 
-    public BodyProportionsConfig(
-            BodyPartProportion head,
-            BodyPartProportion torso,
-            BodyPartProportion leftArm,
-            BodyPartProportion rightArm,
-            BodyPartProportion leftLeg,
-            BodyPartProportion rightLeg,
-            BodyPartProportion width,
-            BodyPartProportion height
-    ) {
-        this.head = head;
-        this.torso = torso;
-        this.leftArm = leftArm;
-        this.rightArm = rightArm;
-        this.leftLeg = leftLeg;
-        this.rightLeg = rightLeg;
-        this.width = width;
-        this.height = height;
+    private final ScaleParameter defaulted = new ScaleParameter("default", EnumSet.of(ScaleParameter.Axis.X, ScaleParameter.Axis.Y, ScaleParameter.Axis.Z), 1, 1, 1);
+
+    public BodyProportionsConfig() {
+        parameters = new HashMap<>();
     }
 
-    public Map<String, BodyPartProportion> getAllParts() {
-        return Map.of(
-                "Head", head,
-                "Torso", torso,
-                "Left Arm", leftArm,
-                "Right Arm", rightArm,
-                "Left Leg", leftLeg,
-                "Right Leg", rightLeg,
-                "Width", width,
-                "Height", height
-        );
+    public ScaleParameter getParameterById(String parameter) {
+        return parameters.getOrDefault(parameter, defaulted);
+    }
+
+    public void initialize(List<ScaleParameter> parameters) {
+        this.parameters.clear();
+        for (ScaleParameter parameter : parameters) {
+            this.parameters.put(parameter.getId(), parameter);
+        }
+    }
+
+    public Collection<ScaleParameter> getAll() {
+        return parameters.values();
+    }
+
+    public BodyProportionsConfig copy() {
+        BodyProportionsConfig config = new BodyProportionsConfig();
+        for (Map.Entry<String, ScaleParameter> entry : this.parameters.entrySet()) {
+            ScaleParameter original = entry.getValue();
+            ScaleParameter copied = new ScaleParameter(
+                    original.getId(),
+                    EnumSet.copyOf(original.getAxes()),
+                    original.min,
+                    original.max,
+                    original.value
+            );
+            config.parameters.put(entry.getKey(), copied);
+        }
+
+        return config;
     }
 }

@@ -1,35 +1,31 @@
 package com.astradia.screen;
 
-import com.astradia.api.player.BodyPartProportion;
+import com.astradia.api.player.ScaleParameter;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.text.Text;
 
 public class ProportionSlider extends SliderWidget {
-    private final BodyPartProportion target;
-    private final BodyPartProportion.Axis axis;
+    private final ScaleParameter target;
     private final float min;
     private final float max;
     private double lastValue;
     private Text label;
     public ProportionSlider(int x, int y, int width, int height,
-                            BodyPartProportion target,
-                            BodyPartProportion.Axis axis,
-                            BodyPartProportion.Range range,
+                            ScaleParameter target,
                             Text label) {
-        super(x, y, width, height, label, normalize(target.getValue(axis), range));
+        super(x, y, width, height, label, target.getValue());
         this.target = target;
-        this.axis = axis;
-        this.min = range.min;
-        this.max = range.max;
+        this.min = target.min;
+        this.max = target.max;
         this.lastValue = this.value;
         this.label = label;
         updateMessage();
     }
 
-    private static double normalize(float value, BodyPartProportion.Range range) {
-        return (value - range.min) / (range.max - range.min);
+    private double normalize(float value) {
+        return (value - min) / (max - min);
     }
 
     private float denormalize(double value) {
@@ -39,14 +35,14 @@ public class ProportionSlider extends SliderWidget {
     @Override
     protected void updateMessage() {
         float actual = denormalize(this.value);
-        this.setMessage(Text.of(String.format("%s %.2f", axis.name(), actual)));
+        this.setMessage(Text.of(String.format("%s %.2f", ".", actual)));
     }
 
     @Override
     protected void applyValue() {
         if (value != lastValue) {
             float actual = denormalize(value);
-            target.setValue(axis, actual);
+            target.setValue(actual);
             lastValue = value;
         }
     }

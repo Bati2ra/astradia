@@ -1,0 +1,58 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.unknown",
+				"texture_width": 64,
+				"texture_height": 64,
+				"visible_bounds_width": 3,
+				"visible_bounds_height": 3.5,
+				"visible_bounds_offset": [0, 1.25, 0]
+			},
+			"bones": [
+				{
+					"name": "bipedHead",
+					"pivot": [0, 24, 0]
+				},
+				{
+					"name": "cosmetic_hair_1",
+					"parent": "bipedHead",
+					"pivot": [0, 29.33333, -1.26667]
+				},
+				{
+					"name": "left_fringe",
+					"parent": "cosmetic_hair_1",
+					"pivot": [2, 28, -3.9],
+					"cubes": [
+						{"origin": [1, 24, -4.9], "size": [3, 7, 2], "inflate": 0.1, "pivot": [2, 28, -3.9], "rotation": [-7.5, -7.5, 0], "uv": [0, 0]}
+					]
+				},
+				{
+					"name": "right_fringe",
+					"parent": "cosmetic_hair_1",
+					"pivot": [-2, 28, -3.9],
+					"cubes": [
+						{"origin": [-4, 24, -4.9], "size": [3, 7, 2], "inflate": 0.1, "pivot": [-2, 28, -3.9], "rotation": [-7.5, 7.5, 0], "uv": [0, 0], "mirror": true}
+					]
+				},
+				{
+					"name": "ponytail",
+					"parent": "cosmetic_hair_1",
+					"pivot": [0, 32, 4],
+					"cubes": [
+						{"origin": [-1.5, 25.9, 3.8], "size": [3, 8, 3], "pivot": [-0.5, 31.9, 4.8], "rotation": [17.5, 0, 0], "uv": [10, 0]}
+					]
+				},
+				{
+					"name": "ponytail2",
+					"parent": "ponytail",
+					"pivot": [0, 26.6, 7.5],
+					"cubes": [
+						{"origin": [-1.5, 18.6, 5.9], "size": [3, 8, 3], "inflate": -0.025, "pivot": [-0.5, 23.6, 6.9], "rotation": [7.5, 0, 0], "uv": [22, 0]}
+					]
+				}
+			]
+		}
+	]
+}

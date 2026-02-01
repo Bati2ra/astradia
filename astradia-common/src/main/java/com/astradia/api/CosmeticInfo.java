@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class CosmeticInfo {
-    private final Integer id;
+    private final Identifier id;
     private final String name;
 
     private final Identifier slotId;
@@ -18,7 +18,7 @@ public class CosmeticInfo {
 
     private final Map<Class<? extends CosmeticProperty<?>>, CosmeticProperty<?>> properties;
 
-    public CosmeticInfo(Integer id, String name, Identifier slotId) {
+    public CosmeticInfo(Identifier id, String name, Identifier slotId) {
         this.id = id;
         this.name = name;
         this.slotId = slotId;
@@ -30,7 +30,7 @@ public class CosmeticInfo {
         clazz = getClass().getName();
         properties = new HashMap<>();
 
-        this.id = json.get("id").getAsInt();
+        this.id = Identifier.tryParse(json.get("id").getAsString());
         this.name = json.get("name").getAsString();
         this.slotId = Identifier.of(json.get("slotId").getAsString());
 
@@ -64,7 +64,7 @@ public class CosmeticInfo {
         return properties;
     }
 
-    public Integer getId() {
+    public Identifier getId() {
         return id;
     }
 
@@ -88,7 +88,7 @@ public class CosmeticInfo {
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
         json.addProperty("clazz", clazz);
-        json.addProperty("id", id);
+        json.addProperty("id", id.toString());
         json.addProperty("name", name);
         json.addProperty("slotId", slotId.toString());
 

@@ -1,55 +1,66 @@
 package com.astradia.player;
 
 import com.astradia.BodyProportionsConfigLoader;
-import com.astradia.api.player.BodyPartProportion;
-import com.astradia.api.player.BodyProportionsConfig;
+import com.astradia.api.player.BodyProportionValues;
+import com.astradia.api.player.ScaleParameter;
 import com.google.gson.JsonObject;
 
-import java.util.Map;
 import java.util.UUID;
 
 public class PlayerBodyProportions extends PlayerFeature {
-    private final BodyProportionsConfig config;
+    private final BodyProportionValues values;
 
     public PlayerBodyProportions(UUID uuid) {
         super("proportions", uuid);
-        config = BodyProportionsConfigLoader.CONFIG;
+        values = new BodyProportionValues();
     }
 
     @Override
     public JsonObject toJson() {
         JsonObject root = new JsonObject();
-        for (Map.Entry<String, BodyPartProportion> entry : config.getAllParts().entrySet()) {
-            String partName = entry.getKey();
-            BodyPartProportion part = entry.getValue();
+        JsonObject paramsObj = new JsonObject();
 
-            JsonObject partJson = new JsonObject();
-            for (BodyPartProportion.Axis axis : part.getRanges().keySet()) {
-                float value = part.getValue(axis);
-                partJson.addProperty(axis.name().toLowerCase(), value);
+        for (var entry : values.getAll().entrySet()) {
+            String paramId = entry.getKey();
+            float value = entry.getValue();
+
+            // Solo guardar si el parámetro existe en la config actual
+            ScaleParameter configParam = BodyProportionsConfigLoader.CONFIG.getParameterById(paramId);
+            if (configParam != null && !configParam.getId().equals("default")) {
+                // Clampear el valor según los límites de la config
+                float clampedValue = configParam.clamp(value);
+                paramsObj.addProperty(paramId, clampedValue);
             }
-            root.add(partName.toLowerCase().replace(" ", "_"), partJson);
         }
+
+        root.add("parameters", paramsObj);
         return root;
     }
 
     @Override
     public void fromJson(JsonObject json) {
-        for (Map.Entry<String, BodyPartProportion> entry : config.getAllParts().entrySet()) {
-            String partName = entry.getKey();
-            BodyPartProportion part = entry.getValue();
+        JsonObject paramsObj = json.getAsJsonObject("parameters");
+        if (paramsObj == null) {
+            return;
+        }
 
-            String key = partName.toLowerCase().replace(" ", "_");
-            if (!json.has(key)) continue;
+        values.getAll().clear(); // Limpia valores anteriores
 
-            JsonObject partJson = json.getAsJsonObject(key);
-            for (BodyPartProportion.Axis axis : part.getRanges().keySet()) {
-                String axisKey = axis.name().toLowerCase();
-                if (partJson.has(axisKey)) {
-                    float value = partJson.get(axisKey).getAsFloat();
-                    part.setValue(axis, value);
-                }
+        for (var entry : paramsObj.entrySet()) {
+            String paramId = entry.getKey();
+
+            // Solo cargar si el parámetro existe en la config actual
+            ScaleParameter configParam = BodyProportionsConfigLoader.CONFIG.getParameterById(paramId);
+            if (configParam != null && !configParam.getId().equals("default")) {
+                float value = entry.getValue().getAsFloat();
+                // Clampear el valor según los límites actuales de la config
+                float clampedValue = configParam.clamp(value);
+                values.getAll().put(paramId, clampedValue);
             }
         }
+    }
+
+    public BodyProportionValues getValues() {
+        return values;
     }
 }
