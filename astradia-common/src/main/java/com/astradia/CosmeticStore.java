@@ -1,12 +1,12 @@
 package com.astradia;
 
-import com.astradia.api.CosmeticInfo;
-import net.minecraft.util.Identifier;
+import com.astradia.api.CosmeticDefinition;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class CosmeticStore<T extends CosmeticInfo> {
+public class CosmeticStore<T extends CosmeticDefinition> {
     protected final HashMap<Identifier, T> cosmetics = new HashMap<>();
 
     private void load() {

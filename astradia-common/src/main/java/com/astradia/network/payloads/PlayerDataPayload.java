@@ -1,17 +1,17 @@
 package com.astradia.network.payloads;
 
-import com.astradia.AstradiaConstants;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
+import com.astradia.VentoConstants;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public record PlayerDataPayload(String data) implements CustomPayload {
-    public static final CustomPayload.Id<PlayerDataPayload> ID = new CustomPayload.Id<>(AstradiaConstants.PLAYER_DATA_ID);
-    public static final PacketCodec<RegistryByteBuf, PlayerDataPayload> CODEC = PacketCodec.tuple(PacketCodecs.STRING, PlayerDataPayload::data, PlayerDataPayload::new);
+public record PlayerDataPayload(String data) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<PlayerDataPayload> ID = new CustomPacketPayload.Type<>(VentoConstants.PLAYER_DATA_ID);
+    public static final StreamCodec<RegistryFriendlyByteBuf, PlayerDataPayload> CODEC = StreamCodec.composite(ByteBufCodecs.STRING_UTF8, PlayerDataPayload::data, PlayerDataPayload::new);
 
     @Override
-    public CustomPayload.Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

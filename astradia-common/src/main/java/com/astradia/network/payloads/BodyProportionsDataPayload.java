@@ -1,17 +1,17 @@
 package com.astradia.network.payloads;
 
-import com.astradia.AstradiaConstants;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
+import com.astradia.VentoConstants;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public record BodyProportionsDataPayload(String data) implements CustomPayload {
-    public static final CustomPayload.Id<BodyProportionsDataPayload> ID = new CustomPayload.Id<>(AstradiaConstants.BODY_PROPORTIONS_DATA_ID);
-    public static final PacketCodec<RegistryByteBuf, BodyProportionsDataPayload> CODEC = PacketCodec.tuple(PacketCodecs.STRING, BodyProportionsDataPayload::data, BodyProportionsDataPayload::new);
+public record BodyProportionsDataPayload(String data) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<BodyProportionsDataPayload> ID = new CustomPacketPayload.Type<>(VentoConstants.BODY_PROPORTIONS_DATA_ID);
+    public static final StreamCodec<FriendlyByteBuf, BodyProportionsDataPayload> CODEC = StreamCodec.composite(ByteBufCodecs.STRING_UTF8, BodyProportionsDataPayload::data, BodyProportionsDataPayload::new);
 
     @Override
-    public CustomPayload.Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

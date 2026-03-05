@@ -1,9 +1,9 @@
 package com.astradia.mixin;
 
-import com.astradia.render.GeoBoneAccessor;
+import com.astradia.renderer.gecko.GeoBoneAccessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.cache.model.GeoBone;
 
 @Mixin(GeoBone.class)
 public class GeoBoneMixin implements GeoBoneAccessor {
@@ -19,4 +19,6 @@ public class GeoBoneMixin implements GeoBoneAccessor {
     public void setShouldCaptureVisualMatrix(boolean value) {
         this.shouldCaptureVisualMatrix = value;
     }
+
+
 }

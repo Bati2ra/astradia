@@ -11,24 +11,25 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
+
 
 public class PlayerProportionsCommand {
-    public static final LiteralArgumentBuilder<ServerCommandSource> PROPORTIONS_COMMAND = literal("proportions")
+    public static final LiteralArgumentBuilder<CommandSourceStack> PROPORTIONS_COMMAND = literal("proportions")
             // /proportions list - Muestra todos los parámetros disponibles
             .then(literal("list")
                     .executes(PlayerProportionsCommand::listParameters)
             )
             // /proportions get <player> [parameter] - Ver proporciones de un jugador
             .then(literal("get")
-                    .then(argument("player", EntityArgumentType.player())
+                    .then(argument("player", EntityArgument.player())
                             .executes(context -> getPlayerProportions(context, null))
                             .then(argument("parameter", StringArgumentType.string())
                                     .suggests((context, builder) -> {
@@ -46,7 +47,7 @@ public class PlayerProportionsCommand {
             )
             // /proportions set <player> <parameter> <value> - Modificar una proporción
             .then(literal("set")
-                    .then(argument("player", EntityArgumentType.player())
+                    .then(argument("player", EntityArgument.player())
                             .then(argument("parameter", StringArgumentType.string())
                                     .suggests((context, builder) -> {
                                         BodyProportionsConfigLoader.CONFIG.getAll().forEach(param ->
@@ -63,8 +64,8 @@ public class PlayerProportionsCommand {
                                                         try {
                                                             String param = StringArgumentType.getString(context, "parameter");
                                                             if (isArmOrLeg(param)) {
-                                                                builder.suggest("true", Text.literal("Vincular ambos lados"));
-                                                                builder.suggest("false", Text.literal("Solo este lado"));
+                                                                builder.suggest("true", Component.literal("Vincular ambos lados"));
+                                                                builder.suggest("false", Component.literal("Solo este lado"));
                                                             }
                                                         } catch (IllegalArgumentException ignored) {}
                                                         return builder.buildFuture();
@@ -80,7 +81,7 @@ public class PlayerProportionsCommand {
             )
             // /proportions reset <player> [parameter] - Resetear proporciones
             .then(literal("reset")
-                    .then(argument("player", EntityArgumentType.player())
+                    .then(argument("player", EntityArgument.player())
                             .executes(context -> resetPlayerProportions(context, null))
                             .then(argument("parameter", StringArgumentType.string())
                                     .suggests((context, builder) -> {
@@ -98,23 +99,23 @@ public class PlayerProportionsCommand {
             )
             // /proportions copy <from> <to> - Copiar proporciones de un jugador a otro
             .then(literal("copy")
-                    .then(argument("from", EntityArgumentType.player())
-                            .then(argument("to", EntityArgumentType.player())
+                    .then(argument("from", EntityArgument.player())
+                            .then(argument("to", EntityArgument.player())
                                     .executes(context -> copyPlayerProportions(context))
                             )
                     )
             );
 
-    private static int listParameters(CommandContext<ServerCommandSource> context) {
-        context.getSource().sendFeedback(() ->
-                Text.literal("§6§l=== Parámetros de Proporciones Disponibles ===").styled(style ->
-                        style.withColor(Formatting.GOLD).withBold(true)
+    private static int listParameters(CommandContext<CommandSourceStack> context) {
+        context.getSource().sendSuccess(() ->
+                Component.literal("§6§l=== Parámetros de Proporciones Disponibles ===").withStyle(style ->
+                        style.withColor(ChatFormatting.GOLD).withBold(true)
                 ), false
         );
 
         BodyProportionsConfigLoader.CONFIG.getAll().forEach(param -> {
-            context.getSource().sendFeedback(() ->
-                    Text.literal(String.format("§e%s §7(Min: §f%.2f§7, Max: §f%.2f§7, Default: §f%.2f§7)",
+            context.getSource().sendSuccess(() ->
+                    Component.literal(String.format("§e%s §7(Min: §f%.2f§7, Max: §f%.2f§7, Default: §f%.2f§7)",
                             param.getId(),
                             param.getMin(),
                             param.getMax(),
@@ -126,16 +127,16 @@ public class PlayerProportionsCommand {
         return 1;
     }
 
-    private static int getPlayerProportions(CommandContext<ServerCommandSource> context, String parameterId) throws CommandSyntaxException {
-        final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+    private static int getPlayerProportions(CommandContext<CommandSourceStack> context, String parameterId) throws CommandSyntaxException {
+        final ServerPlayer player = EntityArgument.getPlayer(context, "player");
         PlayerData playerData = VentoServer.getPlayerManager().getFromPlayer(player);
         PlayerBodyProportions proportions = playerData.getProportions(); // Asumiendo que existe este método
 
         if (parameterId == null) {
             // Mostrar todas las proporciones
-            context.getSource().sendFeedback(() ->
-                            Text.literal(String.format("§6§l=== Proporciones de %s ===", player.getName().getString()))
-                                    .styled(style -> style.withColor(Formatting.GOLD).withBold(true)),
+            context.getSource().sendSuccess(() ->
+                            Component.literal(String.format("§6§l=== Proporciones de %s ===", player.getName().getString()))
+                                    .withStyle(style -> style.withColor(ChatFormatting.GOLD).withBold(true)),
                     false
             );
 
@@ -144,8 +145,8 @@ public class PlayerProportionsCommand {
                 float value = entry.getValue();
                 ScaleParameter config = BodyProportionsConfigLoader.CONFIG.getParameterById(id);
 
-                context.getSource().sendFeedback(() ->
-                        Text.literal(String.format("§e%s: §f%.2f §7(%.2f - %.2f)",
+                context.getSource().sendSuccess(() ->
+                        Component.literal(String.format("§e%s: §f%.2f §7(%.2f - %.2f)",
                                 id, value, config.getMin(), config.getMax()
                         )), false
                 );
@@ -156,15 +157,15 @@ public class PlayerProportionsCommand {
             ScaleParameter config = BodyProportionsConfigLoader.CONFIG.getParameterById(parameterId);
 
             if (config.getId().equals("default")) {
-                context.getSource().sendFeedback(() ->
-                                Text.literal("§c✗ El parámetro '" + parameterId + "' no existe en la configuración"),
+                context.getSource().sendSuccess(() ->
+                                Component.literal("§c✗ El parámetro '" + parameterId + "' no existe en la configuración"),
                         false
                 );
                 return 0;
             }
 
-            context.getSource().sendFeedback(() ->
-                    Text.literal(String.format("§6%s §7de §e%s§7: §f%.2f §7(Min: §f%.2f§7, Max: §f%.2f§7)",
+            context.getSource().sendSuccess(() ->
+                    Component.literal(String.format("§6%s §7de §e%s§7: §f%.2f §7(Min: §f%.2f§7, Max: §f%.2f§7)",
                             parameterId,
                             player.getName().getString(),
                             value,
@@ -181,16 +182,16 @@ public class PlayerProportionsCommand {
         return parameter.toLowerCase().contains("arm") || parameter.toLowerCase().contains("leg");
     }
 
-    private static int setPlayerProportion(CommandContext<ServerCommandSource> context, boolean linked) throws CommandSyntaxException {
-        final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+    private static int setPlayerProportion(CommandContext<CommandSourceStack> context, boolean linked) throws CommandSyntaxException {
+        final ServerPlayer player = EntityArgument.getPlayer(context, "player");
         final String parameterId = StringArgumentType.getString(context, "parameter");
         final float value = FloatArgumentType.getFloat(context, "value");
 
         ScaleParameter config = BodyProportionsConfigLoader.CONFIG.getParameterById(parameterId);
 
         if (config.getId().equals("default")) {
-            context.getSource().sendFeedback(() ->
-                            Text.literal("§c✗ El parámetro '" + parameterId + "' no existe en la configuración"),
+            context.getSource().sendSuccess(() ->
+                            Component.literal("§c✗ El parámetro '" + parameterId + "' no existe en la configuración"),
                     false
             );
             return 0;
@@ -213,14 +214,14 @@ public class PlayerProportionsCommand {
         VentoServer.getPlayerManager().sendToTrackingPlayersAndSelf(player);
 
         if (clampedValue != value) {
-            context.getSource().sendFeedback(() ->
-                            Text.literal(String.format("§e⚠ Valor ajustado de §f%.2f §ea §f%.2f §e(fuera de rango)", value, clampedValue)),
+            context.getSource().sendSuccess(() ->
+                            Component.literal(String.format("§e⚠ Valor ajustado de §f%.2f §ea §f%.2f §e(fuera de rango)", value, clampedValue)),
                     false
             );
         }
 
-        context.getSource().sendFeedback(() ->
-                Text.literal(String.format("§a✓ Proporción §e%s §ade §e%s §aestablecida a §f%.2f",
+        context.getSource().sendSuccess(() ->
+                Component.literal(String.format("§a✓ Proporción §e%s §ade §e%s §aestablecida a §f%.2f",
                         parameterId,
                         player.getName().getString(),
                         clampedValue
@@ -230,8 +231,8 @@ public class PlayerProportionsCommand {
         return 1;
     }
 
-    private static int resetPlayerProportions(CommandContext<ServerCommandSource> context, String parameterId) throws CommandSyntaxException {
-        final ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+    private static int resetPlayerProportions(CommandContext<CommandSourceStack> context, String parameterId) throws CommandSyntaxException {
+        final ServerPlayer player = EntityArgument.getPlayer(context, "player");
         PlayerData playerData = VentoServer.getPlayerManager().getFromPlayer(player);
         PlayerBodyProportions proportions = playerData.getProportions();
 
@@ -246,8 +247,8 @@ public class PlayerProportionsCommand {
 
             VentoServer.getPlayerManager().sendToTrackingPlayersAndSelf(player);
 
-            context.getSource().sendFeedback(() ->
-                    Text.literal(String.format("§a✓ Todas las proporciones de §e%s §ahan sido reseteadas a sus valores por defecto",
+            context.getSource().sendSuccess(() ->
+                    Component.literal(String.format("§a✓ Todas las proporciones de §e%s §ahan sido reseteadas a sus valores por defecto",
                             player.getName().getString()
                     )), false
             );
@@ -256,8 +257,8 @@ public class PlayerProportionsCommand {
             ScaleParameter config = BodyProportionsConfigLoader.CONFIG.getParameterById(parameterId);
 
             if (config.getId().equals("default")) {
-                context.getSource().sendFeedback(() ->
-                                Text.literal("§c✗ El parámetro '" + parameterId + "' no existe en la configuración"),
+                context.getSource().sendSuccess(() ->
+                                Component.literal("§c✗ El parámetro '" + parameterId + "' no existe en la configuración"),
                         false
                 );
                 return 0;
@@ -266,8 +267,8 @@ public class PlayerProportionsCommand {
             proportions.getValues().getAll().put(parameterId, config.getValue());
             VentoServer.getPlayerManager().sendToTrackingPlayersAndSelf(player);
 
-            context.getSource().sendFeedback(() ->
-                    Text.literal(String.format("§a✓ Proporción §e%s §ade §e%s §areseteada a §f%.2f",
+            context.getSource().sendSuccess(() ->
+                    Component.literal(String.format("§a✓ Proporción §e%s §ade §e%s §areseteada a §f%.2f",
                             parameterId,
                             player.getName().getString(),
                             config.getValue()
@@ -278,13 +279,13 @@ public class PlayerProportionsCommand {
         return 1;
     }
 
-    private static int copyPlayerProportions(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        final ServerPlayerEntity fromPlayer = EntityArgumentType.getPlayer(context, "from");
-        final ServerPlayerEntity toPlayer = EntityArgumentType.getPlayer(context, "to");
+    private static int copyPlayerProportions(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final ServerPlayer fromPlayer = EntityArgument.getPlayer(context, "from");
+        final ServerPlayer toPlayer = EntityArgument.getPlayer(context, "to");
 
         if (fromPlayer.equals(toPlayer)) {
-            context.getSource().sendFeedback(() ->
-                            Text.literal("§c✗ No puedes copiar las proporciones de un jugador a sí mismo"),
+            context.getSource().sendSuccess(() ->
+                            Component.literal("§c✗ No puedes copiar las proporciones de un jugador a sí mismo"),
                     false
             );
             return 0;
@@ -303,8 +304,8 @@ public class PlayerProportionsCommand {
 
         VentoServer.getPlayerManager().sendToTrackingPlayersAndSelf(toPlayer);
 
-        context.getSource().sendFeedback(() ->
-                Text.literal(String.format("§a✓ Proporciones copiadas de §e%s §aa §e%s",
+        context.getSource().sendSuccess(() ->
+                Component.literal(String.format("§a✓ Proporciones copiadas de §e%s §aa §e%s",
                         fromPlayer.getName().getString(),
                         toPlayer.getName().getString()
                 )), false

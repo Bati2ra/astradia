@@ -1,16 +1,16 @@
 package com.astradia.mixin;
 
 import com.astradia.input.KeyboardHandler;
-import net.minecraft.client.Keyboard;
+import net.minecraft.client.input.KeyEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Keyboard.class)
+@Mixin(net.minecraft.client.KeyboardHandler.class)
 public class KeyboardMixin {
-    @Inject(at = @At("HEAD"), method = "onKey(JIIII)V")
-    private void keyboardInject(long window, int key, int scancode, int i, int j, CallbackInfo info) {
-        KeyboardHandler.handle(window,key,scancode,i,j);
+    @Inject(at = @At("HEAD"), method = "keyPress(JILnet/minecraft/client/input/KeyEvent;)V")
+    private void keyboardInject(long window, int action, KeyEvent input, CallbackInfo ci) {
+        KeyboardHandler.handle(window, action, input);
     }
 }

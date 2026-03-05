@@ -7,9 +7,9 @@ import com.astradia.store.PlayerDataStore;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,8 +32,8 @@ public class PlayerManager {
         VentoServer.LOGGER.info("{} Initialized and listening for connection/disconnection events.", LOG_PREFIX);
     }
 
-    public PlayerData getFromPlayer(PlayerEntity player) {
-        return getFromUuid(player.getUuid());
+    public PlayerData getFromPlayer(Player player) {
+        return getFromUuid(player.getUUID());
     }
 
     public PlayerData getFromUuid(UUID uuid) {
@@ -49,14 +49,14 @@ public class PlayerManager {
         VentoServer.LOGGER.debug("{} Created in-memory PlayerData for UUID {}", LOG_PREFIX, player);
     }
 
-    private void onPlayerDisconnect(ServerPlayerEntity player) {
-        UUID uuid = player.getUuid();
+    private void onPlayerDisconnect(ServerPlayer player) {
+        UUID uuid = player.getUUID();
         VentoServer.LOGGER.info("{} Player '{}' (UUID {}) disconnected. Saving and clearing data...", LOG_PREFIX, player.getName().getString(), uuid);
         store.save(uuid, getFromPlayer(player));
     }
 
-    private void onPlayerConnect(ServerPlayerEntity player) {
-        UUID uuid = player.getUuid();
+    private void onPlayerConnect(ServerPlayer player) {
+        UUID uuid = player.getUUID();
         VentoServer.LOGGER.info("{} Player '{}' (UUID {}) connected. Loading data...", LOG_PREFIX, player.getName().getString(), uuid);
 
         PlayerData playerData = store.load(uuid);
@@ -67,7 +67,7 @@ public class PlayerManager {
         sendToTrackingPlayersAndSelf(player);
     }
 
-    public void onPlayerTracking(ServerPlayerEntity player, ServerPlayerEntity trackedPlayer) {
+    public void onPlayerTracking(ServerPlayer player, ServerPlayer trackedPlayer) {
         PlayerData trackedData = VentoServer.getPlayerManager().getFromPlayer(trackedPlayer);
 
         if (trackedData.isLoading()) {
@@ -79,19 +79,19 @@ public class PlayerManager {
         sendToPlayer(trackedPlayer, player);
     }
 
-    public void sendToPlayer(ServerPlayerEntity source, ServerPlayerEntity target) {
+    public void sendToPlayer(ServerPlayer source, ServerPlayer target) {
         PlayerData playerData = getFromPlayer(source);
         NetworkManager.sendToPlayer(target, new PlayerDataPayload(playerData.toJson().toString()));
         VentoServer.LOGGER.debug("{} Sent PlayerData from '{}' to '{}'.", DATA_PREFIX, source.getName().getString(), target.getName().getString());
     }
 
-    private void sendToTrackingPlayers(ServerPlayerEntity player, boolean withSelf) {
+    private void sendToTrackingPlayers(ServerPlayer player, boolean withSelf) {
         PlayerData playerData = getFromPlayer(player);
 
         PlayerDataPayload payload = new PlayerDataPayload(playerData.toJson().toString());
         if(withSelf) ServerPlayNetworking.send(player, payload);
-        Collection<ServerPlayerEntity> trackingPlayers = PlayerLookup.tracking(player);
-        for (ServerPlayerEntity tracker  : trackingPlayers) {
+        Collection<ServerPlayer> trackingPlayers = PlayerLookup.tracking(player);
+        for (ServerPlayer tracker  : trackingPlayers) {
             ServerPlayNetworking.send(tracker , payload);
             VentoServer.LOGGER.debug("{} Sent PlayerData from '{}' to '{}'.", DATA_PREFIX, player.getName().getString(), tracker.getName().getString());
         }
@@ -102,11 +102,11 @@ public class PlayerManager {
                 withSelf);
     }
 
-    public void sendToTrackingPlayersAndSelf(ServerPlayerEntity player) {
+    public void sendToTrackingPlayersAndSelf(ServerPlayer player) {
         sendToTrackingPlayers(player, true);
     }
 
-    public void sendToTrackingPlayers(ServerPlayerEntity player) {
+    public void sendToTrackingPlayers(ServerPlayer player) {
         sendToTrackingPlayers(player, false);
     }
 }

@@ -1,8 +1,8 @@
 package com.astradia.enums;
 
-import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.StringRepresentable;
 
-public enum BodyPart implements StringIdentifiable {
+public enum BodyPart implements StringRepresentable {
     HEAD("head", new SlotType[] {
             SlotType.BEARD,
             SlotType.HAIR,
@@ -53,7 +53,7 @@ public enum BodyPart implements StringIdentifiable {
     }
 
     @Override
-    public String asString() {
+    public String getSerializedName() {
         return name;
     }
 }

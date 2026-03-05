@@ -1,7 +1,7 @@
 package com.astradia.impl;
 
 import com.astradia.api.CosmeticProperty;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 import java.util.Set;

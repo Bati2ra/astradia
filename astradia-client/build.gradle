@@ -2,7 +2,7 @@ import java.text.SimpleDateFormat
 
 plugins {
     id 'java'
-    id 'fabric-loom' version '1.11-SNAPSHOT'
+    id 'fabric-loom' version "${loom_version}"
     id "org.jetbrains.kotlin.jvm" version "2.1.0"
 }
 
@@ -10,18 +10,23 @@ version = project.client_version
 group = project.maven_group
 
 repositories {
-    maven {
-        name = 'GeckoLib'
-        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
-        content {
-            includeGroup("software.bernie.geckolib")
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'GeckoLib'
+                url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+            }
         }
+        filter { includeGroupAndSubgroups('software.bernie.geckolib') }
+    }
+    flatDir {
+        dirs 'libs'
     }
 }
 
 dependencies {
     minecraft "net.minecraft:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     // Fabric API. This is technically optional, but you probably want it anyway.
@@ -30,12 +35,12 @@ dependencies {
     def isDevRun = gradle.startParameter.taskNames.any {
         it.contains("run")
     }
-
-    if (isDevRun) {
+    implementation(project(path: ":astradia-common", configuration: "namedElements"))
+    /*if (isDevRun) {
         implementation(project(path: ":astradia-common", configuration: "namedElements"))
     } else {
         include(modImplementation(project(":astradia-common")))
-    }
+    }*/
 
 
 //    include(modImplementation(project(":astradia-common")))
@@ -43,6 +48,7 @@ dependencies {
     include(modImplementation("software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"))
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
+    include(modImplementation fileTree(dir: 'libs', include: ['*.jar']))
 }
 
 loom {

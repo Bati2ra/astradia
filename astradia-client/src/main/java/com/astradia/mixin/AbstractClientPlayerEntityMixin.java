@@ -1,17 +1,20 @@
 package com.astradia.mixin;
 
-import net.minecraft.client.network.AbstractClientPlayerEntity;
+import com.astradia.pojo.CosmeticAnimatable;
+import net.minecraft.client.player.AbstractClientPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import software.bernie.geckolib.animatable.GeoAnimatable;
+import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
-import software.bernie.geckolib.animatable.processing.AnimationController;
-import software.bernie.geckolib.animatable.processing.AnimationTest;
-import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
+import software.bernie.geckolib.animation.state.AnimationTest;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-@Mixin(AbstractClientPlayerEntity.class)
+@Mixin(AbstractClientPlayer.class)
 public class AbstractClientPlayerEntityMixin implements GeoAnimatable {
     @Unique
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -23,6 +26,7 @@ public class AbstractClientPlayerEntityMixin implements GeoAnimatable {
 
     @Unique
     protected <E extends GeoAnimatable> PlayState defaultController(final AnimationTest<E> animTest) {
+
         return PlayState.STOP;
     }
 
@@ -31,8 +35,4 @@ public class AbstractClientPlayerEntityMixin implements GeoAnimatable {
         return cache;
     }
 
-    @Override
-    public double getTick(Object o) {
-        return 0;
-    }
 }

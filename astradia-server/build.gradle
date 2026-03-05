@@ -7,12 +7,13 @@ dependencies {
 	def isDevRun = gradle.startParameter.taskNames.any {
 		it.contains("run")
 	}
-
+	implementation(project(path: ":astradia-common", configuration: "namedElements"))
+	/*
 	if (isDevRun) {
 		implementation(project(path: ":astradia-common", configuration: "namedElements"))
 	} else {
 		include(modImplementation(project(":astradia-common")))
-	}
+	}*/
 
 	modImplementation(include("org.mongodb:bson:4.11.1"))
 	modImplementation(include("org.mongodb:mongodb-driver-core:4.11.1"))

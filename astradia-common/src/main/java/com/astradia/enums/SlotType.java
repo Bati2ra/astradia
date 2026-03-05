@@ -1,8 +1,8 @@
 package com.astradia.enums;
 
-import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.StringRepresentable;
 
-public enum SlotType implements StringIdentifiable {
+public enum SlotType implements StringRepresentable {
     BEARD("beard"),
     HAIR("hair"),
     ACCESSORY("accessory"),
@@ -17,8 +17,9 @@ public enum SlotType implements StringIdentifiable {
     SlotType(String name) {
         this.name = name;
     }
+
     @Override
-    public String asString() {
+    public String getSerializedName() {
         return name;
     }
 }

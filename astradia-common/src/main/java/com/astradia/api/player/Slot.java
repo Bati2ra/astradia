@@ -1,7 +1,7 @@
 package com.astradia.api.player;
 
-import com.astradia.api.CosmeticInfo;
-import net.minecraft.util.Identifier;
+import com.astradia.api.CosmeticDefinition;
+import net.minecraft.resources.Identifier;
 
 public class Slot {
     private final Identifier name;
@@ -24,7 +24,7 @@ public class Slot {
         return category;
     }
 
-    public boolean equip(CosmeticInfo cosmetic) {
+    public boolean equip(CosmeticDefinition cosmetic) {
         return false;
     }
 }

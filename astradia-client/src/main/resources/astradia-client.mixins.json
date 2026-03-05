@@ -3,7 +3,8 @@
   "package": "com.astradia.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "PlayerEntityRenderStateMixin"
+    "PlayerEntityRenderStateMixin",
+    "RenderUtilMixin"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -15,6 +16,7 @@
     "HeldItemRendererMixin",
     "InventoryScreenMixin",
     "KeyboardMixin",
-    "PlayerEntityRendererMixin"
+    "PlayerEntityRendererMixin",
+    "RenderPassInfoMixin"
   ]
 }

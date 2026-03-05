@@ -2,7 +2,7 @@ package com.astradia.impl;
 
 import com.astradia.api.CosmeticProperty;
 import com.google.gson.JsonObject;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.List;
 import java.util.Set;
@@ -36,13 +36,13 @@ public class ColorableProperty extends CosmeticProperty<ColorableProperty.Player
         }
 
         @Override
-        public void fromNbt(NbtCompound nbt) {
+        public void fromNbt(CompoundTag nbt) {
             color = nbt.getInt("color").orElse(-1);
         }
 
         @Override
-        public NbtCompound toNbt() {
-            NbtCompound compound = new NbtCompound();
+        public CompoundTag toNbt() {
+            CompoundTag compound = new CompoundTag();
             compound.putInt("color", color);
             return compound;
         }

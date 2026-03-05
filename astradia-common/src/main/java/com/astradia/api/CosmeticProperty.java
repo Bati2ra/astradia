@@ -2,7 +2,7 @@ package com.astradia.api;
 
 import com.astradia.utils.GsonUtils;
 import com.google.gson.*;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -18,10 +18,10 @@ public abstract class CosmeticProperty<T extends CosmeticProperty.PlayerData> {
 
         default JsonObject toJson() { return null; };
         void fromJson(JsonObject json);
-        default NbtCompound toNbt() {
-            return new NbtCompound();
+        default CompoundTag toNbt() {
+            return new CompoundTag();
         }
-        void fromNbt(NbtCompound nbt);
+        void fromNbt(CompoundTag nbt);
     }
 
     public T createPlayerData() { return null; };
@@ -50,10 +50,10 @@ public abstract class CosmeticProperty<T extends CosmeticProperty.PlayerData> {
      * Validates that all required property groups are satisfied
      * and no incompatible types are present.
      */
-    public void validate(CosmeticInfo cosmeticInfo) {
+    public void validate(CosmeticDefinition cosmeticDefinition) {
         // Validate required property groups (AND between groups, OR within group)
         for (Set<Class<? extends CosmeticProperty<?>>> group : requiredProperties()) {
-            boolean satisfied = cosmeticInfo.getProperties().keySet().stream()
+            boolean satisfied = cosmeticDefinition.getProperties().keySet().stream()
                     .anyMatch(c -> group.stream().anyMatch(req -> req.isAssignableFrom(c)));
 
             if (!satisfied) {
@@ -67,7 +67,7 @@ public abstract class CosmeticProperty<T extends CosmeticProperty.PlayerData> {
 
         // Validate incompatible properties
         for (Class<? extends CosmeticProperty<?>> incompatible : incompatibleTypes()) {
-            boolean hasIncompatible = cosmeticInfo.getProperties().keySet().stream()
+            boolean hasIncompatible = cosmeticDefinition.getProperties().keySet().stream()
                     .anyMatch(incompatible::isAssignableFrom);
             if (hasIncompatible) {
                 throw new IllegalArgumentException(

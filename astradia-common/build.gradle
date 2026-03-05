@@ -1,10 +1,10 @@
 import java.text.SimpleDateFormat
 plugins {
     id 'java'
-    id 'fabric-loom' version '1.11-SNAPSHOT'
+    id 'fabric-loom' version "${loom_version}"
 }
 
-version = "1.0.0"
+version = "1.0.4"
 group = project.maven_group
 
 repositories {
@@ -15,7 +15,7 @@ repositories {
 
 dependencies {
     minecraft "net.minecraft:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     // Fabric API. This is technically optional, but you probably want it anyway.

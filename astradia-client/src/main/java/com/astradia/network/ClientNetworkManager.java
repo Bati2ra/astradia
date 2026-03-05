@@ -1,12 +1,9 @@
 package com.astradia.network;
 
 
-import com.astradia.AstradiaClient;
+import com.astradia.VentoClient;
 import com.astradia.ClientCosmeticStore;
-import com.astradia.network.payloads.BodyProportionsDataPayload;
-import com.astradia.network.payloads.CosmeticsDataPayload;
-import com.astradia.network.payloads.PlayerDataPayload;
-import com.astradia.network.payloads.PlayerReadyPayload;
+import com.astradia.network.payloads.*;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -19,13 +16,13 @@ public class ClientNetworkManager {
         PayloadTypeRegistry.playS2C().register(BodyProportionsDataPayload.ID, BodyProportionsDataPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(PlayerDataPayload.ID, PlayerDataPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(PlayerReadyPayload.ID, PlayerReadyPayload.CODEC);
-
+        PayloadTypeRegistry.playC2S().register(PlayerCosmeticEquipPayload.ID, PlayerCosmeticEquipPayload.CODEC);
 
         ClientPlayNetworking.registerGlobalReceiver(PlayerDataPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
                 String data = payload.data();
                 JsonObject jsonObject = JsonParser.parseString(data).getAsJsonObject();
-                AstradiaClient.getPlayerManager().receiveServerPlayerData(jsonObject);
+                VentoClient.getPlayerManager().receiveServerPlayerData(jsonObject);
             });
         });
 

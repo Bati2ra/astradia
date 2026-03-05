@@ -1,17 +1,17 @@
 package com.astradia.player;
 
-import com.astradia.AstradiaClient;
+import com.astradia.VentoClient;
 import com.astradia.ClientCosmeticStore;
 import com.astradia.api.player.CosmeticSlot;
 import com.astradia.api.player.PlayerCosmeticData;
 import com.google.gson.JsonObject;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 public class ClientCosmeticSlot extends CosmeticSlot  {
     private JsonObject cachedSlotData;
 
-    public ClientCosmeticSlot(Identifier name, String category) {
-        super(name, category);
+    public ClientCosmeticSlot(Identifier id, Identifier categoryId) {
+        super(id, categoryId);
     }
 
     public void cacheSlotData(JsonObject json) {
@@ -22,19 +22,19 @@ public class ClientCosmeticSlot extends CosmeticSlot  {
         this.cachedSlotData = null;
     }
 
+    /* TODO: Arreglar esto, es un parche */
     @Override
-    public PlayerCosmeticData getCosmeticData() {
-        var store = ClientCosmeticStore.INSTANCE;
-
+    public PlayerCosmeticData getEquipped() {
+        ClientCosmeticStore store = ClientCosmeticStore.INSTANCE;
         if(store.isReady() && cachedSlotData != null) {
-            System.out.println(cachedSlotData.toString());
             try {
-                setCosmeticData(new PlayerCosmeticData(store, cachedSlotData));
+                System.out.println(cachedSlotData.toString());
+                setEquipped(new PlayerCosmeticData(store, cachedSlotData));
             } catch (Exception e) {
-                AstradiaClient.LOGGER.warn("Error applying cached cosmetic data", e);
+                VentoClient.LOGGER.warn("Error applying cached cosmetic data", e);
             }
-            cachedSlotData = null;
         }
-        return super.getCosmeticData();
+        cachedSlotData = null;
+        return super.getEquipped();
     }
 }

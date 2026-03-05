@@ -1,68 +1,89 @@
 package com.astradia.player;
 
 import com.astradia.ClientCosmeticStore;
-import com.astradia.api.player.CosmeticSlot;
+import com.astradia.api.CosmeticCategoryRegistry;
 import com.astradia.api.player.PlayerCosmeticData;
-import com.astradia.utils.SlotUtils;
+import com.astradia.pojo.ClientCosmeticDefinition;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.astradia.VentoClient.LOGGER;
+
 public class PlayerCosmetics extends PlayerFeature {
 
-    protected final Map<Identifier, ClientCosmeticSlot> equippedInventory;
+    protected final Map<Identifier, ClientCosmeticSlot> slots;
 
     public PlayerCosmetics(UUID playerId) {
         super("cosmetics", playerId);
-        equippedInventory = new HashMap<>();
-        var slots = SlotUtils.getPlayerEquipmentSlots();
-        for (Map.Entry<Identifier, CosmeticSlot> entry : slots.entrySet()) {
-            equippedInventory.put(entry.getKey(), new ClientCosmeticSlot(entry.getValue().getName(), entry.getValue().getCategory()));
-        }
+        slots = CosmeticCategoryRegistry.buildSlotsFromCategories(ClientCosmeticSlot::new);
     }
 
-    public void clearSlots() {
-        for (CosmeticSlot slot : equippedInventory.values()) {
-            slot.clear();
+    public void clearAll() {
+        slots.values().forEach(ClientCosmeticSlot::clear);
+    }
+
+    public boolean equip(ClientCosmeticDefinition cosmetic, @Nullable Identifier preferredSlotId) {
+        if (preferredSlotId != null) {
+            ClientCosmeticSlot slot = slots.get(preferredSlotId);
+            return slot != null && slot.equip(cosmetic);
         }
+
+        // Auto: primer slot vacío de la categoría correcta
+        for (ClientCosmeticSlot slot : slots.values()) {
+            if (slot.getCategoryId().equals(cosmetic.getCategoryId()) && slot.isEmpty()) {
+                return slot.equip(cosmetic);
+            }
+        }
+        return false;
     }
 
     @Override
     public void fromJson(@NotNull JsonObject json) {
-        clearSlots();
-        JsonObject jsonEquipped = json.has("equipped") ? json.get("equipped").getAsJsonObject() : null;
-        if (jsonEquipped != null) {
-            for (Map.Entry<String, JsonElement> entry : jsonEquipped.entrySet()) {
-                Identifier id;
-                try {
-                    id = Identifier.of(entry.getKey());
-                } catch (Exception e) {
-                    // Clave inválida → ignorar
-                    continue;
+        clearAll();
+
+        if(!json.has("equipped")) return;
+
+        JsonObject equipped = json.get("equipped").getAsJsonObject();
+        for (Map.Entry<String, JsonElement> entry : equipped.entrySet()) {
+            Identifier slotId = Identifier.tryParse(entry.getKey());
+            if (slotId == null) continue;
+
+            ClientCosmeticSlot slot = slots.get(slotId);
+            if (slot == null) continue;
+
+            try {
+                PlayerCosmeticData data = new PlayerCosmeticData(
+                        ClientCosmeticStore.INSTANCE,
+                        entry.getValue().getAsJsonObject()
+                );
+                // Validar que el cosmético cargado pertenece a la categoría del slot
+                if (!data.getCosmetic().getCategoryId().equals(slot.getCategoryId())) {
+                    throw new Exception("Categoría incorrecta para slot '" + slotId + "'");
                 }
-                var slot = equippedInventory.get(id);
-                if(slot == null) {
-                    // Slot no existe → ignorar
-                    continue;
-                }
-                try {
-                    slot.setCosmeticData(new PlayerCosmeticData(ClientCosmeticStore.INSTANCE, entry.getValue().getAsJsonObject()));
-                    slot.clearCache();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    slot.clear();
-                    slot.cacheSlotData(entry.getValue().getAsJsonObject());
-                }
+                slot.setEquipped(data);
+                slot.clearCache();
+            } catch (Exception e) {
+                // Log y dejar slot vacío, no cachear datos corruptos silenciosamente
+                LOGGER.warn("Error cargando slot '{}': {}", slotId, e.getMessage());
+                slot.clear();
+                slot.cacheSlotData(entry.getValue().getAsJsonObject());
             }
         }
     }
 
-    public Map<Identifier, ClientCosmeticSlot> getEquippedInventory() {
-        return equippedInventory;
+    public Map<Identifier, ClientCosmeticSlot> getSlots() { return slots; }
+
+    /** Obtiene todos los slots de una categoría específica */
+    public List<ClientCosmeticSlot> getSlotsByCategory(Identifier categoryId) {
+        return slots.values().stream()
+                .filter(s -> s.getCategoryId().equals(categoryId))
+                .toList();
     }
 }

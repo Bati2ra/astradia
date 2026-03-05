@@ -1,10 +1,10 @@
 package com.astradia.player;
 
-import com.astradia.AstradiaClient;
+import com.astradia.VentoClient;
 import com.google.gson.JsonObject;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -12,10 +12,13 @@ import java.util.UUID;
 public class PlayerManager {
     protected final HashMap<UUID, PlayerData> players;
 
+    private final HashMap<UUID, PlayerData> fakePlayers;
+
     private static final PlayerData defaulted = new PlayerData(UUID.randomUUID()); // eto ta mal
 
     public PlayerManager() {
         players = new HashMap<>();
+        fakePlayers = new HashMap<>();
     }
 
     public void initialize() {
@@ -23,21 +26,21 @@ public class PlayerManager {
             var player = client.player;
             if(player == null) return;
 
-            if(player.age % 1200 == 0) {
+            if(player.tickCount % 1200 == 0) {
                 //players.entrySet().removeIf(entry -> entry.getValue().getPlayer() == null);
             }
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> client.execute(this::onDisconnect));
     }
 
-    private void onPlayerDisconnect(PlayerEntity player) {
+    private void onPlayerDisconnect(Player player) {
     }
 
-    private void onPlayerConnect(PlayerEntity player) {
+    private void onPlayerConnect(Player player) {
     }
 
-    public PlayerData getFromPlayer(PlayerEntity player) {
-        return getFromUuid(player.getUuid());
+    public PlayerData getFromPlayer(Player player) {
+        return getFromUuid(player.getUUID());
     }
 
     public void receiveServerPlayerData(JsonObject json) {
@@ -50,8 +53,19 @@ public class PlayerManager {
         return players.getOrDefault(uuid, defaulted);
     }
 
+    public PlayerData getFromFakeUuid(UUID uuid) {
+        if(!fakePlayers.containsKey(uuid)) {
+            fakePlayers.put(uuid, new PlayerData(uuid));
+        }
+        return fakePlayers.get(uuid);
+    }
+
+    public void clearFakePlayers() {
+        fakePlayers.clear();
+    }
+
     public void onDisconnect() {
         players.clear();
-        AstradiaClient.LOGGER.info("[Cosmetics] Limpiando caché de jugadores");
+        VentoClient.LOGGER.info("[Cosmetics] Limpiando caché de jugadores");
     }
 }

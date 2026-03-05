@@ -2,8 +2,8 @@ package com.astradia.store;
 
 import com.astradia.CosmeticStore;
 import com.astradia.VentoServer;
+import com.astradia.api.CosmeticDefinition;
 import com.astradia.network.payloads.CosmeticsDataPayload;
-import com.astradia.api.CosmeticInfo;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -11,31 +11,31 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-public class ServerCosmeticStore extends CosmeticStore<CosmeticInfo> {
+public class ServerCosmeticStore extends CosmeticStore<CosmeticDefinition> {
     private static final String LOG_PREFIX = "[CosmeticStore]";
     public static final ServerCosmeticStore INSTANCE = new ServerCosmeticStore();
     public JsonObject cachedSerializedCosmetics;
     public void initialize() {
-        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
-            public Identifier getFabricId() {
-                return Identifier.of(VentoServer.MOD_ID, "cosmetics");
+            public void onResourceManagerReload(ResourceManager resourceManager) {
+                onReload(resourceManager);
             }
 
             @Override
-            public void reload(ResourceManager manager) {
-                onReload(manager);
+            public Identifier getFabricId() {
+                return Identifier.fromNamespaceAndPath(VentoServer.MOD_ID, "cosmetics");
             }
         });
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((serverPlayer, joined) -> sendToPlayer(serverPlayer));
@@ -45,14 +45,14 @@ public class ServerCosmeticStore extends CosmeticStore<CosmeticInfo> {
         VentoServer.LOGGER.info("{} Reloading cosmetic definitions from data packs...", LOG_PREFIX);
         cosmetics.clear();
 
-        var resources = manager.findResources("cosmetics", path -> path.toString().endsWith(".json"));
+        var resources = manager.listResources("cosmetics", path -> path.toString().endsWith(".json"));
         VentoServer.LOGGER.info("{} Found {} cosmetic JSON files.", LOG_PREFIX, resources.size());
         for(Map.Entry<Identifier, Resource> resourceEntry : resources.entrySet()) {
-            try(InputStream stream = resourceEntry.getValue().getInputStream();
+            try(InputStream stream = resourceEntry.getValue().open();
                 InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)
             ) {
                 JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
-                CosmeticInfo cosmetic = new CosmeticInfo(json);
+                CosmeticDefinition cosmetic = new CosmeticDefinition(json);
                 if(cosmetics.containsKey(cosmetic.getId())) {
                     VentoServer.LOGGER.info("{} Duplicated cosmetic ID '{}' ({}), skipping...", LOG_PREFIX, cosmetic.getName(), cosmetic.getId());
                     continue;
@@ -68,9 +68,9 @@ public class ServerCosmeticStore extends CosmeticStore<CosmeticInfo> {
         VentoServer.LOGGER.info("{} Cosmetic registry updated. Total cosmetics: {}", LOG_PREFIX, cosmetics.size());
     }
 
-    public void sendToPlayer(ServerPlayerEntity player) {
+    public void sendToPlayer(ServerPlayer player) {
         ServerPlayNetworking.send(player, new CosmeticsDataPayload(cachedSerializedCosmetics.toString()));
-        VentoServer.LOGGER.info("{} Sent cosmetic data to player '{}'", LOG_PREFIX, player.getGameProfile().getName());
+        VentoServer.LOGGER.info("{} Sent cosmetic data to player '{}'", LOG_PREFIX, player.getGameProfile().name());
     }
 
     private JsonObject getSerializedCosmetics() {

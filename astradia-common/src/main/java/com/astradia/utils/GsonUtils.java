@@ -6,7 +6,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 import java.io.IOException;
 
@@ -17,7 +17,7 @@ public class GsonUtils {
                     out.value(id.toString()); }
                 public Identifier read(JsonReader in) throws IOException {
                     String v = in.nextString();
-                    return Identifier.of(v); }
+                    return Identifier.tryParse(v); }
             })
             .registerTypeAdapter(CosmeticProperty.class, new CosmeticProperty.Serializer())
             .setPrettyPrinting()

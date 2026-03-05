@@ -2,24 +2,22 @@ package com.astradia.screen;
 
 import com.astradia.api.player.BodyProportionValues;
 import com.astradia.api.player.BodyProportionsConfig;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.EnumSet;
 import java.util.stream.Collectors;
 
 public class ProportionsScreen extends Screen {
     private final BodyProportionValues config;
-    private final PlayerEntity previewPlayer;
+    private final Player previewPlayer;
 
-    public ProportionsScreen(BodyProportionValues config, MinecraftClient client) {
-        super(Text.of("Body Proportions Editor"));
+    public ProportionsScreen(BodyProportionValues config, Minecraft client) {
+        super(Component.nullToEmpty("Body Proportions Editor"));
         this.config = config;
         this.previewPlayer = client.player; // o un clon si querés evitar side effects
     }
@@ -77,7 +75,7 @@ public class ProportionsScreen extends Screen {
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
         super.render(context, mouseX, mouseY, deltaTicks);
         // Render preview del jugador
         int previewX = this.width - 250;
@@ -87,6 +85,6 @@ public class ProportionsScreen extends Screen {
         float scale = 40f;
         int i = 50;
         int j = 50;
-        InventoryScreen.drawEntity(context, previewX, previewY, previewX + width, previewY + height, 60, 0.0625F, mouseX, mouseY, MinecraftClient.getInstance().player);
+        InventoryScreen.renderEntityInInventoryFollowsMouse(context, previewX, previewY, previewX + width, previewY + height, 60, 0.0625F, mouseX, mouseY, Minecraft.getInstance().player);
     }
 }

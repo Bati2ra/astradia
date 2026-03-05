@@ -1,28 +1,31 @@
 package com.astradia.input;
 
-import com.astradia.AstradiaClient;
+import com.astradia.VentoClient;
 import com.astradia.screen.DebugOverlay;
+import com.astradia.screen.PlayerCustomizationScreen;
 import com.astradia.screen.ProportionsScreen;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.KeyEvent;
 import org.lwjgl.glfw.GLFW;
 
+
 public class KeyboardHandler {
-    public static void handle(long window, int key, int scancode, int i, int j) {
-        if(!checks(window, MinecraftClient.getInstance()))
+    public static void handle(long window, int action, KeyEvent input) {
+        if(!checks(window, Minecraft.getInstance()))
             return;
 
-        if(i == 0 && key == GLFW.GLFW_KEY_KP_1) {
+        if(action == 0 && input.input() == GLFW.GLFW_KEY_KP_1) {
             DebugOverlay.nextMode();
         }
 
-        if(i == 0 && key == GLFW.GLFW_KEY_V) {
-            MinecraftClient.getInstance().setScreen(new ProportionsScreen(AstradiaClient.getPlayerManager().getFromUuid(MinecraftClient.getInstance().player.getUuid()).getProportions().getValues(), MinecraftClient.getInstance()));
+        if(action == 0 && input.input() == GLFW.GLFW_KEY_V) {
+            Minecraft.getInstance().setScreen(new PlayerCustomizationScreen(null));
         }
     }
 
-    private static boolean checks(long window, MinecraftClient mc) {
-        return (window == MinecraftClient.getInstance().getWindow().getHandle()) &&
-                mc != null && mc.world != null && mc.player != null && mc.currentScreen == null;
+    private static boolean checks(long window, Minecraft mc) {
+        return (window == Minecraft.getInstance().getWindow().handle()) &&
+                mc != null && mc.level != null && mc.player != null && mc.screen == null;
 
     }
 }

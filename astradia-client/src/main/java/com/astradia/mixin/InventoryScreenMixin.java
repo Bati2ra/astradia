@@ -1,34 +1,35 @@
 package com.astradia.mixin;
 
+import com.astradia.renderer.entity.player.PlayerRenderer;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.render.entity.state.EntityRenderState;
-import net.minecraft.entity.Entity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 @Mixin(InventoryScreen.class)
 abstract class InventoryScreenMixin {
 
-    @SuppressWarnings("all")
     @WrapOperation(
-            method = "drawEntity(Lnet/minecraft/client/gui/DrawContext;IIIIFLorg/joml/Vector3f;Lorg/joml/Quaternionf;Lorg/joml/Quaternionf;Lnet/minecraft/entity/LivingEntity;)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/EntityRenderer;getAndUpdateRenderState(Lnet/minecraft/entity/Entity;F)Lnet/minecraft/client/render/entity/state/EntityRenderState;")
+            method = "renderEntityInInventoryFollowsMouse(Lnet/minecraft/client/gui/GuiGraphics;IIIIIFFFLnet/minecraft/world/entity/LivingEntity;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/InventoryScreen;extractRenderState(Lnet/minecraft/world/entity/LivingEntity;)Lnet/minecraft/client/renderer/entity/state/EntityRenderState;", remap = false)
     )
-    private static EntityRenderState wrapRenderState(EntityRenderer<?, ?> instance, Entity entity, float tickProgress, Operation<EntityRenderState> original) {
-        if(instance instanceof GeoEntityRenderer geoEntityRenderer) {
-            var state = geoEntityRenderer.getAndUpdateRenderState(entity, tickProgress);
+    private static EntityRenderState wrapRenderState(LivingEntity entity, Operation<EntityRenderState> original) {
+        if(entity instanceof AbstractClientPlayer player) {
+            PlayerRenderer playerRenderer = (PlayerRenderer) Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(player);
+            var state = playerRenderer.createRenderState(entity, 1);
             if(state instanceof GeoRenderState geoRenderState) {
                 geoRenderState.addGeckolibData(DataTickets.PACKED_LIGHT, 15728880);
             }
             return state;
         } else {
-            return original.call(instance, entity, tickProgress);
+            return original.call(entity);
         }
     }
 }

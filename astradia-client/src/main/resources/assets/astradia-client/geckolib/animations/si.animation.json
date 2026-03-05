@@ -5,9 +5,10 @@
 			"loop": true,
 			"bones": {
 				"bipedHead": {
-					"position": {
-						"vector": [0, "math.cos(query.anim_time * 200) * 5", 0]
-					}
+					"position": [0, "math.cos(query.anim_time * 200) * 5", 0]
+				},
+				"Root": {
+					"rotation": [0, "-math.sin(query.anim_time*90)*5", "math.cos(query.anim_time*90)*5"]
 				}
 			}
 		}

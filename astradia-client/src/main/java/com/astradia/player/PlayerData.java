@@ -1,6 +1,6 @@
 package com.astradia.player;
 
-import com.astradia.AstradiaClient;
+import com.astradia.VentoClient;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -37,7 +37,7 @@ public class PlayerData {
             JsonObject featureJson = entry.getValue().getAsJsonObject();
             var clazz = FEATURE_TYPES.get(id);
             if(clazz == null) {
-                AstradiaClient.LOGGER.warn("Unknown feature key in JSON: {}", id);
+                VentoClient.LOGGER.warn("Unknown feature key in JSON: {}", id);
                 continue;
             };
             var feature = features.get(clazz);

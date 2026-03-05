@@ -1,24 +1,20 @@
 package com.astradia.pojo;
 
 import com.astradia.impl.AnimatableProperty;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.world.World;
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
-import software.bernie.geckolib.animatable.processing.AnimationController;
-import software.bernie.geckolib.animatable.processing.AnimationState;
-import software.bernie.geckolib.animatable.processing.AnimationTest;
 import software.bernie.geckolib.animation.*;
+import software.bernie.geckolib.animation.object.PlayState;
+import software.bernie.geckolib.animation.state.AnimationTest;
 import software.bernie.geckolib.util.GeckoLibUtil;
-import software.bernie.geckolib.util.RenderUtil;
 
 public class CosmeticAnimatable implements GeoAnimatable {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final ClientCosmeticInfo cosmetic;
-    protected static final RawAnimation IDLE_ANIMATION = RawAnimation.begin().thenLoop("idle");
+    private final ClientCosmeticDefinition cosmetic;
+    public static final RawAnimation IDLE_ANIMATION = RawAnimation.begin().thenLoop("idle");
 
-    public CosmeticAnimatable(ClientCosmeticInfo cosmetic) {
+    public CosmeticAnimatable(ClientCosmeticDefinition cosmetic) {
         this.cosmetic = cosmetic;
     }
 
@@ -26,6 +22,7 @@ public class CosmeticAnimatable implements GeoAnimatable {
     public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>("base", 0, this::flyAnimController));
     }
+
 
     protected <E extends GeoAnimatable> PlayState flyAnimController(final AnimationTest<E> animTest) {
         var property = cosmetic.getProperty(AnimatableProperty.class);
@@ -38,9 +35,9 @@ public class CosmeticAnimatable implements GeoAnimatable {
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return cache;
+        return this.cache;
     }
-
+/*
     @Override
     public double getTick(Object o) {
         World level = MinecraftClient.getInstance().world;
@@ -50,9 +47,9 @@ public class CosmeticAnimatable implements GeoAnimatable {
         double gameTicks = level.getTime();
         double partialTick = MinecraftClient.getInstance().getRenderTime();
         return RenderUtil.getCurrentTick();
-    }
+    }*/
 
-    public ClientCosmeticInfo getCosmetic() {
+    public ClientCosmeticDefinition getCosmetic() {
         return cosmetic;
     }
 }
